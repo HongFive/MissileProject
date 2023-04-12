@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="edu.szu.mapper.TaskPlanResultPointInfoMapper" >
+  <resultMap id="BaseResultMap" type="edu.szu.pojo.TaskPlanResultPointInfo" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="t_name" property="tName" jdbcType="VARCHAR" />
+    <result column="agv_name" property="agvName" jdbcType="VARCHAR" />
+    <result column="shelf_id" property="shelfId" jdbcType="INTEGER" />
+    <result column="equipment_id" property="equipmentId" jdbcType="VARCHAR" />
+    <result column="agv_action" property="agvAction" jdbcType="VARCHAR" />
+    <result column="agv_action_num" property="agvActionNum" jdbcType="INTEGER" />
+    <result column="point" property="point" jdbcType="VARCHAR" />
+    <result column="finish_timestamp" property="finishTimestamp" jdbcType="VARCHAR" />
+    <result column="start_timestamp" property="startTimestamp" jdbcType="TIMESTAMP" />
+    <result column="plan_source" property="planSource" jdbcType="VARCHAR" />
+    <result column="end_timestamp" property="endTimestamp" jdbcType="TIMESTAMP" />
+    <result column="valid" property="valid" jdbcType="INTEGER" />
+    <result column="insert_timestamp" property="insertTimestamp" jdbcType="VARCHAR" />
+    <result column="update_timestamp" property="updateTimestamp" jdbcType="TIMESTAMP" />
+  </resultMap>
+</mapper>

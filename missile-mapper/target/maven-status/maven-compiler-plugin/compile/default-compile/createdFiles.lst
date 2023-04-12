@@ -1,0 +1,7 @@
+edu\szu\mapper\TaskInfoMapper.class
+edu\szu\Main.class
+edu\szu\mapper\TaskPlanResultPointInfoMapper.class
+edu\szu\mapper\TaskRecommendResultInfoMapper.class
+edu\szu\mapper\AgvInfoMapper.class
+edu\szu\mapper\AlgorithmConfigInfoMapper.class
+edu\szu\mapper\ShelfInfoMapper.class
