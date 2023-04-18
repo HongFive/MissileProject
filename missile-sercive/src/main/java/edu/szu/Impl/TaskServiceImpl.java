@@ -36,10 +36,10 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override
-    public TaskInfo queryTaskInfo(Integer task_id) {
+    public TaskInfo queryTaskInfo(Integer taskId) {
         Example taskExample = new Example(TaskInfo.class);
         Example.Criteria criteria = taskExample.createCriteria();
-        criteria.andEqualTo("id", task_id);
+        criteria.andEqualTo("id", taskId);
         TaskInfo task=taskInfoMapper.selectOneByExample(taskExample);
         return task;
     }

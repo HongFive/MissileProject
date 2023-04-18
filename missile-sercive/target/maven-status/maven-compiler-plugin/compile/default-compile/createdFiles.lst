@@ -1,3 +1,6 @@
-edu\szu\Main.class
 edu\szu\Impl\TaskServiceImpl.class
 edu\szu\TaskService.class
+edu\szu\Impl\ShelfServiceImpl.class
+edu\szu\AgvService.class
+edu\szu\ShelfService.class
+edu\szu\Impl\AgvServiceImpl.class
