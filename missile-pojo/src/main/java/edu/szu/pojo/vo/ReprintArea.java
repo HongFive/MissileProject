@@ -18,6 +18,11 @@ public class ReprintArea {
      */
     public List<AgvInfo> agvInfoList;
 
+    public ReprintArea(Integer areaId, List<AgvInfo> agvInfoList) {
+        AreaId = areaId;
+        this.agvInfoList = agvInfoList;
+    }
+
     public Integer getAreaId() {
         return AreaId;
     }

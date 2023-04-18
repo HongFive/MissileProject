@@ -3,6 +3,7 @@ edu\szu\pojo\AlgorithmConfigInfo.class
 edu\szu\pojo\vo\NodePoint.class
 edu\szu\Main.class
 edu\szu\pojo\TaskRecommendResultInfo.class
+edu\szu\pojo\vo\ReprintArea.class
 edu\szu\pojo\TaskInfo.class
 edu\szu\pojo\AgvInfo.class
 edu\szu\pojo\TaskPlanResultPointInfo.class

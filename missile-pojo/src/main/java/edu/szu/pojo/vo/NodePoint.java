@@ -8,10 +8,20 @@ import java.util.List;
 public class NodePoint {
 
     /**
-     * 点位
+     * ID
      */
     @Id
-    private Integer point;
+    private Integer id;
+
+    /**
+     * 路径编号
+     */
+    private String pathNum;
+
+    /**
+     * 点位
+     */
+    private List<String> point;
 
     /**
      * 该点位货架信息（如果有）
@@ -20,6 +30,7 @@ public class NodePoint {
 
     /**
      * 该点位是否被占用
+     * true代表被占用，false代表没有
      */
     private boolean state;
 
@@ -28,11 +39,32 @@ public class NodePoint {
      */
     public ReprintArea area;
 
-    public Integer getPoint() {
+    public NodePoint(Integer id,String pathnum,List<String> point, List<ShelfInfo> shelfs, boolean state, ReprintArea area) {
+        this.id = id;
+        this.pathNum=pathnum;
+        this.point = point;
+        this.shelfs = shelfs;
+        this.state = state;
+        this.area = area;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getPathNum() {
+        return pathNum;
+    }
+
+    public void setPathNum(String pathNum) {
+        this.pathNum = pathNum;
+    }
+
+    public List<String> getPoint() {
         return point;
     }
 
-    public void setPoint(Integer point) {
+    public void setPoint(List<String> point) {
         this.point = point;
     }
 

@@ -9,7 +9,6 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -25,10 +24,10 @@
 
     <modules>
         <module>missile-common</module>
+        <module>missile-pojo</module>
         <module>missile-mapper</module>
         <module>missile-sercive</module>
         <module>missile-Api</module>
-        <module>missile-pojo</module>
     </modules>
 
 

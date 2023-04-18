@@ -13,8 +13,5 @@
         <module name="missile-mapper" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="missile-pojo" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
