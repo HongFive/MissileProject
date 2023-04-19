@@ -77,15 +77,26 @@ public class TestShelfRecommendController {
             }
         }
 
+        //上装载区存在底层agv->寻找最近货架
         if(upAgvFirstSingle != null){
-            NodePoint curPoint = upPoint;
-            while (true){
-                ArrayList<NodePoint> list =  getConnectedNodes(curPoint,a1,matrix,hm);
-                for (NodePoint nodePoint : list) {
-
-                }
+            List<NodePoint> lowpath = null;
+            List<NodePoint> highpath = null;
+            boolean[] visited = new boolean[a1.length];
+            for (int i = 0; i < a1.length; i++) {
+                visited[i] = false;
             }
+            //最短路径 DFS
+            lowpath = getShortestPath(upPoint, visited, "单", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+
+            //未找到最短路径 并且存在高层agv
+            if(lowpath == null && upAgvFirstDouble !=null){
+                highpath = getShortestPath(upPoint, visited, "双", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            }
+            System.out.println(lowpath);
+            System.out.println(highpath);
         }
+
+        //下装载区存在底层agv->寻找最近货架
 
 
 
@@ -112,7 +123,9 @@ public class TestShelfRecommendController {
     * */
     static List<NodePoint> getShortestPath(NodePoint src, boolean[] visited,String type,int limit,double weight,List<NodePoint> curPath,List<NodePoint> shortestPath,double shortestPathWeight){
         if(visited[hm.get(src)] == true) return null;
-        visited[hm.get(src)] = true;
+        //如果当前weight已经大于最小weight 进行剪枝
+        if(weight>shortestPathWeight)
+            visited[hm.get(src)] = true;
         //非货架节点
         if(src.getShelfs() == null){
             for (NodePoint connectedNode : getConnectedNodes(src)) {
@@ -124,7 +137,7 @@ public class TestShelfRecommendController {
         else{
             List<ShelfInfo> shelfs = src.getShelfs();
             //货架行数
-            int shelfrows = -1;
+//            int shelfrows = -1;
             for (ShelfInfo shelf : shelfs) {
                 if( Integer.parseInt(shelf.getLocation().split("-")[1]) >limit) return shortestPath;
                 //底层货架
