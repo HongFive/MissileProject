@@ -25,6 +25,7 @@ public class TestShelfRecommendController {
     static NodePoint[] a1;
     static double[][] matrix;
     static HashMap<NodePoint,Integer> hm;
+    static int maxDown = 25;
 
     public void taskRecommend(NodePoint[] a1, double[][] matrix, HashMap<NodePoint, Integer> hm){
         /**
@@ -38,6 +39,7 @@ public class TestShelfRecommendController {
         this.a1 = a1;
         this.matrix = matrix;
         this.hm = hm;
+
 
         //获取初始节点
         NodePoint upPoint = a1[0];
@@ -78,25 +80,47 @@ public class TestShelfRecommendController {
         }
 
         //上装载区存在底层agv->寻找最近货架
-        if(upAgvFirstSingle != null){
-            List<NodePoint> lowpath = null;
-            List<NodePoint> highpath = null;
+        if(upAgvFirstSingle != null || upAgvFirstDouble !=null){
+            List<NodePoint> up_lowpath = null;
+            List<NodePoint> up_highpath = null;
             boolean[] visited = new boolean[a1.length];
             for (int i = 0; i < a1.length; i++) {
                 visited[i] = false;
             }
             //最短路径 DFS
-            lowpath = getShortestPath(upPoint, visited, "单", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
-
-            //未找到最短路径 并且存在高层agv
-            if(lowpath == null && upAgvFirstDouble !=null){
-                highpath = getShortestPath(upPoint, visited, "双", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            if(upAgvFirstSingle == null) {
+                up_lowpath = getShortestPath(upPoint, visited, "单", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
             }
-            System.out.println(lowpath);
-            System.out.println(highpath);
+            //未找到最短路径 并且存在高层agv
+            if(up_lowpath == null && upAgvFirstDouble !=null){
+
+                up_highpath = getShortestPath(upPoint, visited, "双", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            }
+            System.out.println(up_lowpath);
+            System.out.println(up_highpath);
         }
 
         //下装载区存在底层agv->寻找最近货架
+        if(downAgvFirstSingle != null || downAgvFirstDouble != null){
+            List<NodePoint> down_lowpath = null;
+            List<NodePoint> down_highpath = null;
+            boolean[] visited = new boolean[a1.length];
+            for (int i = 0; i < a1.length; i++) {
+                visited[i] = false;
+            }
+            //最短路径 DFS
+            if(downAgvFirstSingle == null){
+                down_lowpath = getShortestPath(upPoint, visited, "单", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            }
+
+            //未找到最短路径 并且存在高层agv
+            if(down_lowpath == null && upAgvFirstDouble !=null){
+
+                down_highpath = getShortestPath(upPoint, visited, "双", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            }
+            System.out.println(down_lowpath);
+            System.out.println(down_highpath);
+        }
 
 
 
@@ -136,10 +160,11 @@ public class TestShelfRecommendController {
         //货架节点
         else{
             List<ShelfInfo> shelfs = src.getShelfs();
-            //货架行数
-//            int shelfrows = -1;
+            Integer areaId = src.getArea().getAreaId();
             for (ShelfInfo shelf : shelfs) {
-                if( Integer.parseInt(shelf.getLocation().split("-")[1]) >limit) return shortestPath;
+
+                if(areaId == 0 && Integer.parseInt(shelf.getLocation().split("-")[1]) >limit) return shortestPath;
+                if(areaId == 1 && (maxDown - Integer.parseInt(shelf.getLocation().split("-")[1])) > limit) return shortestPath;
                 //底层货架
                 if(type.equals("单")){
                     if(shelf.getLayer()==1){
