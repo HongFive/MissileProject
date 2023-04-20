@@ -10,7 +10,7 @@ public class ReprintArea {
     /**
      * 上转载区与下转载区
      */
-    @Id
+
     private Integer AreaId;
 
     /**

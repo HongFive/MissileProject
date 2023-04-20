@@ -60,13 +60,8 @@ public class ShelfInfo {
     @Column(name = "equipment_id")
     private String equipmentId;
 
-    public ShelfInfo(Integer id, String shelfName, Integer layer, String position, Boolean free, String location) {
-        this.id = id;
-        this.shelfName = shelfName;
-        this.layer = layer;
-        this.position = position;
-        this.free = free;
-        this.location = location;
+    public ShelfInfo() {
+        super();
     }
 
     /**

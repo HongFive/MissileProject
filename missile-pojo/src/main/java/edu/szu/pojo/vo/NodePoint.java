@@ -10,7 +10,7 @@ public class NodePoint {
     /**
      * ID
      */
-    @Id
+
     private Integer id;
 
     /**
@@ -32,14 +32,14 @@ public class NodePoint {
      * 该点位是否被占用
      * true代表被占用，false代表没有
      */
-    private boolean state;
+    private Integer state;
 
     /**
      * 该点位转载区信息（如果有）
      */
     public ReprintArea area;
 
-    public NodePoint(Integer id,String pathnum,List<String> point, List<ShelfInfo> shelfs, boolean state, ReprintArea area) {
+    public NodePoint(Integer id, String pathnum, List<String> point, List<ShelfInfo> shelfs, Integer state, ReprintArea area) {
         this.id = id;
         this.pathNum=pathnum;
         this.point = point;
@@ -76,11 +76,11 @@ public class NodePoint {
         this.shelfs = shelfs;
     }
 
-    public boolean isState() {
+    public Integer isState() {
         return state;
     }
 
-    public void setState(boolean state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 

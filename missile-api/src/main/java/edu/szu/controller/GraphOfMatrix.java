@@ -1,4 +1,4 @@
-package edu.szu;
+package edu.szu.controller;
 
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class GraphOfMatrix {
-    private NodePoint[] arrayV;//节点数组
-    private double[][] Matrix;//邻接矩阵
-    private boolean isDirect;//是否是有向图
-    HashMap<NodePoint, Integer> map=new HashMap<>();//优化版的写法 , 目的是建立节点数组与其下标之间的映射关系
+    public NodePoint[] arrayV;//节点数组
+    public double[][] Matrix;//邻接矩阵
+    public boolean isDirect;//是否是有向图
+    public HashMap<NodePoint, Integer> map=new HashMap<>();//优化版的写法 , 目的是建立节点数组与其下标之间的映射关系
 
     //构造节点数组和邻接矩阵 size表示当前节点的个数
     public GraphOfMatrix(int size, boolean isDirect) {
@@ -22,7 +22,7 @@ public class GraphOfMatrix {
         Matrix = new double[size][size];
         //将邻接矩阵的每一位都初始化为无穷大
         for (int i = 0; i < size; i++) {
-            Arrays.fill(Matrix[i], Integer.MIN_VALUE);
+            Arrays.fill(Matrix[i], Integer.MAX_VALUE);
         }
         this.isDirect = isDirect;
     }
@@ -107,7 +107,7 @@ public class GraphOfMatrix {
     public void printGraph() {
         for (int i = 0; i < Matrix.length; i++) {
             for (int j = 0; j < Matrix[0].length; j++) {
-                if (Matrix[i][j] != Integer.MIN_VALUE) {
+                if (Matrix[i][j] != Integer.MAX_VALUE) {
                     System.out.print(Matrix[i][j] + " ");
                 } else {
                     System.out.print("∞ ");
@@ -117,20 +117,20 @@ public class GraphOfMatrix {
         }
     }
 
-    public NodePoint[] inintialNode(){
-        ReprintArea area_1=new ReprintArea(1,new ArrayList<AgvInfo>()); //上转载区
-        ReprintArea area_2=new ReprintArea(2,new ArrayList<AgvInfo>()); //上转载区
-        NodePoint node_1=new NodePoint(1,"1",new ArrayList<String>(),null,false,area_1);
-        NodePoint node_2=new NodePoint(2,"2",new ArrayList<String>(),null,false,null);
-
-        ShelfInfo shelf_4_1=new ShelfInfo(1,"1-1",1,"内",false,"4-1");
-        ShelfInfo shelf_4_2=new ShelfInfo(1,"1-2",1,"外",false,"4-1");
-        List<ShelfInfo> shelfInfos= Arrays.asList(shelf_4_1,shelf_4_2);
-        NodePoint node_3=new NodePoint(3,"4",new ArrayList<String>(),shelfInfos,false,null);
-
-        NodePoint node_4=new NodePoint(4,"23",new ArrayList<String>(),null,false,area_2);
-        NodePoint[] arrayV=new NodePoint[]{node_1,node_2,node_3,node_4};
-        return arrayV;
+    public void inintialNode(){
+//        ReprintArea area_1=new ReprintArea(1,new ArrayList<AgvInfo>()); //上转载区
+//        ReprintArea area_2=new ReprintArea(2,new ArrayList<AgvInfo>()); //上转载区
+//        NodePoint node_1=new NodePoint(1,"1",new ArrayList<String>(),null,false,area_1);
+//        NodePoint node_2=new NodePoint(2,"2",new ArrayList<String>(),null,false,null);
+//
+//        ShelfInfo shelf_4_1=new ShelfInfo(1,"1-1",1,"内",false,"4-1");
+//        ShelfInfo shelf_4_2=new ShelfInfo(1,"1-2",1,"外",false,"4-1");
+//        List<ShelfInfo> shelfInfos= Arrays.asList(shelf_4_1,shelf_4_2);
+//        NodePoint node_3=new NodePoint(3,"4",new ArrayList<String>(),shelfInfos,false,null);
+//
+//        NodePoint node_4=new NodePoint(4,"23",new ArrayList<String>(),null,false,area_2);
+//        NodePoint[] arrayV=new NodePoint[]{node_1,node_2,node_3,node_4};
+//        return arrayV;
     }
 
 

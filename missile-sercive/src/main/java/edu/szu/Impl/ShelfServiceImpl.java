@@ -4,6 +4,7 @@ import edu.szu.ShelfService;
 import edu.szu.mapper.ShelfInfoMapper;
 import edu.szu.pojo.ShelfInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
@@ -11,6 +12,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
+@Service
 public class ShelfServiceImpl implements ShelfService {
 
     @Autowired
