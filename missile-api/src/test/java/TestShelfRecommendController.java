@@ -4,15 +4,13 @@ import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
 import edu.szu.pojo.vo.ReprintArea;
-import io.swagger.models.auth.In;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.soap.Node;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 
 public class TestShelfRecommendController {
 
@@ -22,10 +20,16 @@ public class TestShelfRecommendController {
     @Autowired
     private static AgvService agvService;
 
-    static NodePoint[] a1;
-    static double[][] matrix;
-    static HashMap<NodePoint,Integer> hm;
-    static int maxDown = 25;
+    NodePoint[] a1;
+    double[][] matrix;
+    HashMap<NodePoint,Integer> hm;
+    int maxDown = 25;
+
+    //上装载区从左边道运行路径长度
+    double upLeftPathWeight = 1122;
+
+    //下装载区从左边道路运行路径长度
+    double downLeftPathWeight = 1005;
 
     public void taskRecommend(NodePoint[] a1, double[][] matrix, HashMap<NodePoint, Integer> hm){
         /**
@@ -51,7 +55,7 @@ public class TestShelfRecommendController {
 
         //上下装载区agv列表
         List<AgvInfo> upAgvInfoList = upReprint.getAgvInfoList();
-        List<AgvInfo> downAgvInfoList1 = downReprint.getAgvInfoList();
+        List<AgvInfo> downAgvInfoList = downReprint.getAgvInfoList();
 
         //获取上装载区最近Agv
         AgvInfo upAgvFirstSingle = null;
@@ -69,8 +73,8 @@ public class TestShelfRecommendController {
         //获取下装载区最近Agv
         AgvInfo downAgvFirstSingle = null;
         AgvInfo downAgvFirstDouble = null;
-        //获取上装载区第一个底层agv
-        for (AgvInfo agvInfo : upAgvInfoList) {
+        //获取下装载区第一个底层agv
+        for (AgvInfo agvInfo : downAgvInfoList) {
             if(agvInfo.getType().equals("单") && downAgvFirstSingle==null){
                 downAgvFirstSingle = agvInfo;
             }
@@ -79,49 +83,81 @@ public class TestShelfRecommendController {
             }
         }
 
-        //上装载区存在底层agv->寻找最近货架
+        //上装载区存在底层agv或高层agv->寻找最近货架
         if(upAgvFirstSingle != null || upAgvFirstDouble !=null){
-            List<NodePoint> up_lowpath = null;
-            List<NodePoint> up_highpath = null;
+            NodePoint up_low = null;
+            NodePoint up_high = null;
+            //设置visited数组
             boolean[] visited = new boolean[a1.length];
             for (int i = 0; i < a1.length; i++) {
                 visited[i] = false;
             }
-            //最短路径 DFS
-            if(upAgvFirstSingle == null) {
-                up_lowpath = getShortestPath(upPoint, visited, "单", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
-            }
-            //未找到最短路径 并且存在高层agv
-            if(up_lowpath == null && upAgvFirstDouble !=null){
 
-                up_highpath = getShortestPath(upPoint, visited, "双", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            //设置pathWeight数组
+            double[] pathWeight = new double[a1.length];
+            for (int i = 0; i < a1.length; i++) {
+                pathWeight[i] = 0;
             }
-            System.out.println(up_lowpath);
-            System.out.println(up_highpath);
+
+            //底层agv DFS
+            up_low = shortestNodePoint(upPoint,visited,0,Double.MAX_VALUE,pathWeight,true,5,"单");
+
+            //未找到最短路径，并且存在高层agv
+            //重置visted和pathWeight
+            for (int i = 0; i < a1.length; i++) {
+                visited[i] = false;
+            }
+            for (int i = 0; i < a1.length; i++) {
+                pathWeight[i] = 0;
+            }
+            if(up_low != null && upAgvFirstDouble!=null){
+                up_high = shortestNodePoint(upPoint,visited,0,Double.MAX_VALUE,pathWeight,true,5,"双");
+            }
+
+            System.out.println("up_low is " + up_low);
+            System.out.println("up_high is " + up_high);
+
         }
 
         //下装载区存在底层agv->寻找最近货架
         if(downAgvFirstSingle != null || downAgvFirstDouble != null){
-            List<NodePoint> down_lowpath = null;
-            List<NodePoint> down_highpath = null;
+            NodePoint down_low = null;
+            NodePoint down_high = null;
+            //设置visited数组
             boolean[] visited = new boolean[a1.length];
             for (int i = 0; i < a1.length; i++) {
                 visited[i] = false;
             }
-            //最短路径 DFS
-            if(downAgvFirstSingle == null){
-                down_lowpath = getShortestPath(upPoint, visited, "单", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+
+            //设置pathWeight数组
+            double[] pathWeight = new double[a1.length];
+            for (int i = 0; i < a1.length; i++) {
+                pathWeight[i] = 0;
             }
 
-            //未找到最短路径 并且存在高层agv
-            if(down_lowpath == null && upAgvFirstDouble !=null){
+            //底层agv DFS
+            down_low = shortestNodePoint(upPoint,visited,0,Double.MAX_VALUE,pathWeight,false,5,"单");
 
-                down_highpath = getShortestPath(upPoint, visited, "双", 5, 0, new ArrayList<NodePoint>(), new ArrayList<NodePoint>(), Double.MAX_VALUE);
+            //未找到最短路径，并且存在高层agv
+            //重置visted和pathWeight
+            for (int i = 0; i < a1.length; i++) {
+                visited[i] = false;
             }
-            System.out.println(down_lowpath);
-            System.out.println(down_highpath);
+            for (int i = 0; i < a1.length; i++) {
+                pathWeight[i] = 0;
+            }
+            if(down_low != null && upAgvFirstDouble!=null){
+                down_high = shortestNodePoint(upPoint,visited,0,Double.MAX_VALUE,pathWeight,false,5,"双");
+            }
+
+            System.out.println("down_low is " + down_low);
+            System.out.println("down_high is " + down_high);
+
         }
 
+        //寻找第一阶段 第234...tasks
+        //建立路径栈
+        Stack<NodePoint> nodePoints = new Stack<>();
 
 
     }
@@ -129,7 +165,7 @@ public class TestShelfRecommendController {
     /**
      * 获取相邻节点
      */
-    public static ArrayList<NodePoint> getConnectedNodes(NodePoint src) {
+    public ArrayList<NodePoint> getConnectedNodes(NodePoint src) {
         ArrayList<NodePoint> connectedPoints =null;
         int temp = hm.get(src);
         for (int i = 0; i < matrix[0].length; i++) {
@@ -142,65 +178,67 @@ public class TestShelfRecommendController {
     }
 
     /*
-    * type:agv类型
-    * limit:最远距离
-    * */
-    static List<NodePoint> getShortestPath(NodePoint src, boolean[] visited,String type,int limit,double weight,List<NodePoint> curPath,List<NodePoint> shortestPath,double shortestPathWeight){
-        if(visited[hm.get(src)] == true) return null;
+     * type:agv类型
+     * limit:最远距离
+     * isup:判断是否为上装载区
+     * pathWeight:记录路径weight
+     * */
+
+    public NodePoint shortestNodePoint(NodePoint src,boolean[] visited,double curWeight,double minWeight,double[] pathWeight,boolean isup,int limit,String type){
+
+        //如果已经访问，直接return
+        if(visited[hm.get(src)]) return null;
+
         //如果当前weight已经大于最小weight 进行剪枝
-        if(weight>shortestPathWeight)
-            visited[hm.get(src)] = true;
+        if(curWeight >= minWeight) return null;
+
+        //将当前节点设为已访问
+        visited[hm.get(src)] = true;
+        pathWeight[hm.get(src)] = curWeight;
+
+        NodePoint tempPoint = null;
+
         //非货架节点
         if(src.getShelfs() == null){
             for (NodePoint connectedNode : getConnectedNodes(src)) {
-                curPath.add(connectedNode);
-                getShortestPath(connectedNode,visited,type,limit,weight+ matrix[hm.get(src)][hm.get(connectedNode)],curPath,shortestPath,shortestPathWeight);
+                //返回下个节点的结果
+                NodePoint nextPoint = shortestNodePoint(connectedNode, visited, curWeight + matrix[hm.get(src)][hm.get(connectedNode)], minWeight, pathWeight, isup,limit,type);
+                //判断下个节点返回结果是否为null
+                if(nextPoint != null){
+                    //若tempPoint为null或weigth更小，更新tempPoint
+                    if(tempPoint==null || pathWeight[hm.get(nextPoint)] < pathWeight[hm.get(src)]){
+                        tempPoint = nextPoint;
+                    }
+                }
             }
         }
+
         //货架节点
         else{
+            //得到该货架节点的货架列表
             List<ShelfInfo> shelfs = src.getShelfs();
-            Integer areaId = src.getArea().getAreaId();
+            //遍历货架列表
             for (ShelfInfo shelf : shelfs) {
+                //若超出limit 进行剪枝
+                //上装载区情况
+                if(isup && Integer.parseInt(shelf.getLocation().split("-")[1]) >limit) return null;
+                //下装载区情况
+                if(!isup && (maxDown - Integer.parseInt(shelf.getLocation().split("-")[1])) > limit) return null;
 
-                if(areaId == 0 && Integer.parseInt(shelf.getLocation().split("-")[1]) >limit) return shortestPath;
-                if(areaId == 1 && (maxDown - Integer.parseInt(shelf.getLocation().split("-")[1])) > limit) return shortestPath;
                 //底层货架
                 if(type.equals("单")){
                     if(shelf.getLayer()==1){
-                        if(weight < shortestPathWeight){
-                            shortestPath = curPath;
-                            shortestPathWeight = weight;
+                        if(curWeight < minWeight){
+                            return src;
                         }
                     }
                 }
                 //高层货架
                 else{
-                    if(type.equals("双")){
-                        if(shelf.getLayer()==2){
-                            if(weight < shortestPathWeight){
-                                shortestPath = curPath;
-                                shortestPathWeight = weight;
-                            }
-                        }
-                    }
-                    //第三层货架
-                    if(type.equals("双")){
-                        if(shelf.getLayer()==3){
-                            if(weight < shortestPathWeight){
-                                shortestPath = curPath;
-                                shortestPathWeight = weight;
-                            }
-                        }
-                    }
+                    if(shelf.getLayer() == 2 || shelf.getLayer() == 3) return src;
                 }
             }
-            for (NodePoint connectedNode : getConnectedNodes(src)) {
-                curPath.add(connectedNode);
-                getShortestPath(connectedNode,visited,type,limit,weight+ matrix[hm.get(src)][hm.get(connectedNode)],curPath,shortestPath,shortestPathWeight);
-            }
         }
-        return shortestPath;
+        return tempPoint;
     }
-
 }
