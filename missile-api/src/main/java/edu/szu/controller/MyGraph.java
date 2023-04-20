@@ -19,15 +19,6 @@ import java.util.List;
  */
 public class MyGraph extends GraphOfMatrix{
 
-
-//    private static MyGraph myGraphController;
-//
-//    @PostConstruct //通过@PostConstruct实现初始化bean之前进行的操作
-//    public void init() {
-//        myGraphController = this;
-//        myGraphController.shelfService = this.shelfService;
-//        // 初使化时将已静态化的testService实例化
-//    }
     public static final Integer FREE=0;
     public static final Integer WORKING=1;
 
@@ -39,10 +30,16 @@ public class MyGraph extends GraphOfMatrix{
 
         ArrayList<NodePoint> arrayV=new ArrayList<>();
 
-        // TODO 根据agv位置安排转载区
         //转载区信息
-        ReprintArea area_1 = new ReprintArea(1,new ArrayList<AgvInfo>()); //上转载区
-        ReprintArea area_2 = new ReprintArea(2,new ArrayList<AgvInfo>()); //下转载区
+        ArrayList<AgvInfo> agvs_up=new ArrayList<>();
+        ArrayList<AgvInfo> agvs_down=new ArrayList<>();
+        for (AgvInfo agv:agvInfoList){
+            String[] temp=agv.getLocation().split("-");
+            if (temp[0].equals("21")) agvs_up.add(agv);
+            if (temp[0].equals("23")) agvs_down.add(agv);
+        }
+        ReprintArea area_1 = new ReprintArea(1,agvs_up); //上转载区
+        ReprintArea area_2 = new ReprintArea(2,agvs_down); //下转载区
 
         //初始化节点信息
         NodePoint node_0 = new NodePoint(0,"1",new ArrayList<String>(),null,FREE,area_1);

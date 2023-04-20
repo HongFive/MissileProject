@@ -26,8 +26,8 @@ public class HelloController {
     public JSONResult Hello(){
         List<ShelfInfo> shelfInfoList=shelfService.queryShelfList();
         List<AgvInfo> agvInfoList=agvService.queryAgvList();
-        MyGraph graph=new MyGraph(118,true);
-        graph=graph.initialGraph(agvInfoList,shelfInfoList);
+        MyGraph graph = new MyGraph(118,true);
+        graph = graph.initialGraph(agvInfoList,shelfInfoList);
         graph.printGraph();
         return JSONResult.ok(graph.arrayV);
     }
