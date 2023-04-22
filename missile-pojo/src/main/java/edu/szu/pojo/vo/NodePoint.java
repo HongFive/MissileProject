@@ -3,6 +3,7 @@ package edu.szu.pojo.vo;
 import edu.szu.pojo.ShelfInfo;
 
 import javax.persistence.*;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class NodePoint {
@@ -19,9 +20,10 @@ public class NodePoint {
     private String pathNum;
 
     /**
-     * 点位
+     * 点位列表
      */
-    private List<String> point;
+    private LinkedHashMap<String,Double> pointList;
+
 
     /**
      * 该点位货架信息（如果有）
@@ -39,14 +41,15 @@ public class NodePoint {
      */
     public ReprintArea area;
 
-    public NodePoint(Integer id, String pathnum, List<String> point, List<ShelfInfo> shelfs, Integer state, ReprintArea area) {
+    public NodePoint(Integer id, String pathnum, LinkedHashMap<String,Double> pointlist, List<ShelfInfo> shelfs, Integer state, ReprintArea area) {
         this.id = id;
         this.pathNum=pathnum;
-        this.point = point;
+        this.pointList = pointlist;
         this.shelfs = shelfs;
         this.state = state;
         this.area = area;
     }
+
 
     public void setId(Integer id) {
         this.id = id;
@@ -60,12 +63,20 @@ public class NodePoint {
         this.pathNum = pathNum;
     }
 
-    public List<String> getPoint() {
-        return point;
+    public Integer getId() {
+        return id;
     }
 
-    public void setPoint(List<String> point) {
-        this.point = point;
+    public LinkedHashMap<String, Double> getPointList() {
+        return pointList;
+    }
+
+    public void setPointList(LinkedHashMap<String, Double> pointList) {
+        this.pointList = pointList;
+    }
+
+    public Integer getState() {
+        return state;
     }
 
     public List<ShelfInfo> getShelfs() {

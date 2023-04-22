@@ -5,10 +5,7 @@ import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
 import edu.szu.pojo.vo.ReprintArea;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class GraphOfMatrix {
     public NodePoint[] arrayV;//节点数组
@@ -117,22 +114,69 @@ public class GraphOfMatrix {
         }
     }
 
-    public void inintialNode(){
-//        ReprintArea area_1=new ReprintArea(1,new ArrayList<AgvInfo>()); //上转载区
-//        ReprintArea area_2=new ReprintArea(2,new ArrayList<AgvInfo>()); //上转载区
-//        NodePoint node_1=new NodePoint(1,"1",new ArrayList<String>(),null,false,area_1);
-//        NodePoint node_2=new NodePoint(2,"2",new ArrayList<String>(),null,false,null);
-//
-//        ShelfInfo shelf_4_1=new ShelfInfo(1,"1-1",1,"内",false,"4-1");
-//        ShelfInfo shelf_4_2=new ShelfInfo(1,"1-2",1,"外",false,"4-1");
-//        List<ShelfInfo> shelfInfos= Arrays.asList(shelf_4_1,shelf_4_2);
-//        NodePoint node_3=new NodePoint(3,"4",new ArrayList<String>(),shelfInfos,false,null);
-//
-//        NodePoint node_4=new NodePoint(4,"23",new ArrayList<String>(),null,false,area_2);
-//        NodePoint[] arrayV=new NodePoint[]{node_1,node_2,node_3,node_4};
-//        return arrayV;
+
+    /**
+     * 获取agv往返路径
+     */
+    public LinkedHashMap<AgvInfo,List<NodePoint>> findShortPaths(double[][] Matrix,LinkedHashMap<AgvInfo,NodePoint> nodes,int src){
+        LinkedHashMap<AgvInfo,List<NodePoint>> paths= new LinkedHashMap<>();
+
+        //遍历目标节点数组，对每个目标节点寻找最短路径
+        for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
+            NodePoint node=entry.getValue();
+            if (node.getState()==1){
+                continue;//如果目标节点忙碌中，跳过该节点
+            }
+            int dest=node.getId();
+            List<NodePoint> path=bfs(Matrix,this.arrayV,src,dest);
+            if (path.size()>0){
+                paths.put(entry.getKey(),path);
+                node.setState(1);//设置该节点为忙碌状态
+            }
+        }
+        //装载后回程路径
+
+        for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
+            NodePoint node=entry.getValue();
+            if (node.getState()==1){
+                node.setState(0);//如果目标节点工作结束，释放节点
+            }
+            int dest=node.getId();
+            List<NodePoint> path=bfs(Matrix,this.arrayV,dest,src);
+            if (path.size()>0){
+                path.remove(0);
+                paths.get(entry.getKey()).addAll(path);//合并路径
+            }
+        }
+        return paths;
     }
 
+    private List<NodePoint> bfs(double[][] Matrix, NodePoint[] arrayV, int src, int dest) {
+        Queue<List<NodePoint>> queue=new LinkedList<>();
+        int len=arrayV.length;
+        boolean[] visited=new boolean[len];
+        List<NodePoint> path=new ArrayList<>();
+        path.add(arrayV[src]);
+        queue.offer(path);
+
+        while (!queue.isEmpty()){
+            List<NodePoint> currpath=queue.poll();
+            NodePoint currNode=currpath.get(currpath.size()-1);
+            if (currNode.getId()==dest){
+                return currpath; //找到目标节点返回最短路径
+            }
+            for (int i=0;i<len;i++){
+                if (Matrix[currNode.getId()][i]>0 &&!visited[i] && arrayV[i].getState()==0&&Matrix[currNode.getId()][i]!=Integer.MAX_VALUE){
+                    visited[i]=true;
+                    List<NodePoint> newPath=new ArrayList<>(currpath);
+                    newPath.add(arrayV[i]);
+                    queue.offer(newPath);
+                }
+            }
+        }
+
+        return new ArrayList<>(); //没有找到路径则返回空路径
+    }
 
 
 }
