@@ -142,10 +142,20 @@ public class GraphOfMatrix {
                 node.setState(0);//如果目标节点工作结束，释放节点
             }
             int dest=node.getId();
-            List<NodePoint> path=bfs(Matrix,this.arrayV,dest,src);
-            if (path.size()>0){
-                path.remove(0);
-                paths.get(entry.getKey()).addAll(path);//合并路径
+            if (node.getPathNum().equals("4")||node.getPathNum().equals("8")){
+                src=0;
+                List<NodePoint> path=bfs(Matrix,this.arrayV,dest,src);
+                if (path.size()>0){
+                    path.remove(0);
+                    paths.get(entry.getKey()).addAll(path);//合并路径
+                }
+            }else if (node.getPathNum().equals("14")||node.getPathNum().equals("19")){
+                src=115;
+                List<NodePoint> path=bfs(Matrix,this.arrayV,dest,src);
+                if (path.size()>0){
+                    path.remove(0);
+                    paths.get(entry.getKey()).addAll(path);//合并路径
+                }
             }
         }
         return paths;
