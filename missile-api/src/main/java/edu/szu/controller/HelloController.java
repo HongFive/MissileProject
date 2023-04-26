@@ -5,7 +5,6 @@ import edu.szu.ShelfService;
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
-import edu.szu.pojo.vo.ReprintArea;
 import edu.szu.utils.JSONResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -87,25 +86,56 @@ public class HelloController {
 
         PlanRecommendController222 recommend=new PlanRecommendController222();
         HashMap<String,LinkedHashMap<AgvInfo,NodePoint>> targets= recommend.targetsRecommend(shelfService.queryShelfList(),agvService.queryAgvList(),12);
+
         LinkedHashMap<AgvInfo,NodePoint> up_run=new LinkedHashMap<>();
-//        Map.Entry<AgvInfo,NodePoint> firstnode=targets.get("uptoup").entrySet().iterator();
-        for (Map.Entry<AgvInfo,NodePoint> temp:targets.get("uptoup").entrySet()){
-            up_run.put(temp.getKey(),temp.getValue());
+
+        Map.Entry<AgvInfo, NodePoint> firstnode_up=targets.get("uptoup").entrySet().iterator().next();
+        up_run.put(firstnode_up.getKey(),firstnode_up.getValue());
+        targets.get("uptoup").remove(firstnode_up.getKey());
+
+        List<Map.Entry<AgvInfo, NodePoint>> uptoup_list = new ArrayList<>(targets.get("uptoup").entrySet());
+        List<Map.Entry<AgvInfo, NodePoint>> uptodown_list = new ArrayList<>(targets.get("uptodown").entrySet());
+        Collections.reverse(uptoup_list);
+        Collections.reverse(uptodown_list);
+        for (Map.Entry<AgvInfo, NodePoint> entry:uptoup_list){
+            up_run.put(entry.getKey(),entry.getValue());
         }
-        for (Map.Entry<AgvInfo,NodePoint> temp:targets.get("uptodown").entrySet()){
-            up_run.put(temp.getKey(),temp.getValue());
+        for (Map.Entry<AgvInfo, NodePoint> entry:uptodown_list){
+            up_run.put(entry.getKey(),entry.getValue());
         }
 
+
         LinkedHashMap<AgvInfo,NodePoint> down_run=new LinkedHashMap<>();
-        for (Map.Entry<AgvInfo,NodePoint> temp:targets.get("downtodown").entrySet()){
-            down_run.put(temp.getKey(),temp.getValue());
+
+        Map.Entry<AgvInfo, NodePoint> firstnode_d=targets.get("downtodown").entrySet().iterator().next();
+        down_run.put(firstnode_d.getKey(),firstnode_d.getValue());
+        targets.get("downtodown").remove(firstnode_d.getKey());
+
+        List<Map.Entry<AgvInfo, NodePoint>> downtodown_list = new ArrayList<>(targets.get("downtodown").entrySet());
+        List<Map.Entry<AgvInfo, NodePoint>> downtoup_list = new ArrayList<>(targets.get("downtoup").entrySet());
+        Collections.reverse(downtodown_list);
+        Collections.reverse(downtoup_list);
+        for (Map.Entry<AgvInfo, NodePoint> entry:downtodown_list){
+            down_run.put(entry.getKey(),entry.getValue());
         }
-        for (Map.Entry<AgvInfo,NodePoint> temp:targets.get("downtoup").entrySet()){
-            down_run.put(temp.getKey(),temp.getValue());
+        for (Map.Entry<AgvInfo, NodePoint> entry:downtoup_list){
+            down_run.put(entry.getKey(),entry.getValue());
         }
 
         LinkedHashMap<AgvInfo, List<NodePoint>> up_paths= graph.findShortPaths(graph.Matrix, up_run,up_area);
         LinkedHashMap<AgvInfo, List<NodePoint>> down_paths= graph.findShortPaths(graph.Matrix, down_run,down_area);
+
+//        LinkedHashMap<AgvInfo,List<String>> allPaths=new LinkedHashMap<>();
+//        for (Map.Entry<AgvInfo,List<NodePoint>> entry:up_paths.entrySet()){
+//            for (NodePoint node:entry.getValue()){
+//                List<String> path=new ArrayList<>();
+//                if (!path.contains("4")||!path.contains("8")||!path.contains("14")||){
+//                    path.add(node.getPathNum())
+//                }
+//
+//            }
+//            allPaths.put()
+//        }
 
         return JSONResult.ok();
 

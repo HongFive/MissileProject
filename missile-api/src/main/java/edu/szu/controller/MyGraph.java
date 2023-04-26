@@ -431,6 +431,7 @@ public class MyGraph extends GraphOfMatrix{
         graph.addEdg(arrayV[113],arrayV[113+1],7.5);
         //node_114
         graph.addEdg(arrayV[114],arrayV[86],70.0);
+        graph.addEdg(arrayV[114],arrayV[113],7.5);
         //node_115
         graph.addEdg(arrayV[115],arrayV[29],175.0);
         //node_116

@@ -124,21 +124,22 @@ public class GraphOfMatrix {
         //遍历目标节点数组，对每个目标节点寻找最短路径
         for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
             NodePoint node=entry.getValue();
-            if (node.getState()==1){
+            if (this.arrayV[node.getId()].getState()==1){
                 continue;//如果目标节点忙碌中，跳过该节点
             }
             int dest=node.getId();
             List<NodePoint> path=bfs(Matrix,this.arrayV,src,dest);
+            paths.put(entry.getKey(),path);
             if (path.size()>0){
-                paths.put(entry.getKey(),path);
-                node.setState(1);//设置该节点为忙碌状态
+                this.arrayV[node.getId()].setState(1);//设置该节点为忙碌状态
+//                node.setState(1);
             }
         }
         //装载后回程路径
         for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
             NodePoint node=entry.getValue();
-            if (node.getState()==1){
-                node.setState(0);//目标节点工作结束，释放节点
+            if (this.arrayV[node.getId()].getState()==1){
+                this.arrayV[node.getId()].setState(0);//目标节点工作结束，释放节点
             }
         }
         for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
@@ -147,14 +148,14 @@ public class GraphOfMatrix {
             if (node.getPathNum().equals("4")||node.getPathNum().equals("8")){
                 src=0;
                 List<NodePoint> path=bfs(Matrix,this.arrayV,dest,src);
-                if (path.size()>0){
+                if (path.size()>0&&paths.get(entry.getKey()).size()>0){
                     path.remove(0);
                     paths.get(entry.getKey()).addAll(path);//合并路径
                 }
             }else if (node.getPathNum().equals("14")||node.getPathNum().equals("19")){
                 src=115;
                 List<NodePoint> path=bfs(Matrix,this.arrayV,dest,src);
-                if (path.size()>0){
+                if (path.size()>0&&paths.get(entry.getKey()).size()>0){
                     path.remove(0);
                     paths.get(entry.getKey()).addAll(path);//合并路径
                 }
@@ -175,6 +176,9 @@ public class GraphOfMatrix {
             List<NodePoint> currpath=queue.poll();
             NodePoint currNode=currpath.get(currpath.size()-1);
             if (currNode.getId()==dest){
+                if (currpath.size()>30){
+                    return new ArrayList<>();//超出运输范围
+                }
                 return currpath; //找到目标节点返回最短路径
             }
             for (int i=0;i<len;i++){
