@@ -135,12 +135,14 @@ public class GraphOfMatrix {
             }
         }
         //装载后回程路径
-
         for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
             NodePoint node=entry.getValue();
             if (node.getState()==1){
-                node.setState(0);//如果目标节点工作结束，释放节点
+                node.setState(0);//目标节点工作结束，释放节点
             }
+        }
+        for (Map.Entry<AgvInfo,NodePoint> entry:nodes.entrySet()){
+            NodePoint node=entry.getValue();
             int dest=node.getId();
             if (node.getPathNum().equals("4")||node.getPathNum().equals("8")){
                 src=0;

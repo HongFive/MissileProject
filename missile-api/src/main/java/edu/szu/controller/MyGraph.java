@@ -335,7 +335,7 @@ public class MyGraph extends GraphOfMatrix{
         graph.arrayV=arrayV;
         graph.initArray(arrayV);
         //node_0
-        graph.addEdg(arrayV[0],arrayV[57],1440.);
+        graph.addEdg(arrayV[0],arrayV[57],144.0);
         //node_1
         graph.addEdg(arrayV[1],arrayV[0],144.0);
         //node_2
