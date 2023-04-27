@@ -1,15 +1,20 @@
 package edu.szu.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Date;
 
-@Table(name = "agv_info")
+@Table(name = "out_agv_info")
 public class AgvInfo {
+    /**
+     * 主键
+     */
     @Id
     private Integer id;
 
     /**
-     * agv name
+     * agv名称
      */
     @Column(name = "agv_name")
     private String agvName;
@@ -42,32 +47,36 @@ public class AgvInfo {
     private Date employTimestamp;
 
     /**
-     * @return id
+     * 获取主键
+     *
+     * @return id - 主键
      */
     public Integer getId() {
         return id;
     }
 
     /**
-     * @param id
+     * 设置主键
+     *
+     * @param id 主键
      */
     public void setId(Integer id) {
         this.id = id;
     }
 
     /**
-     * 获取agv name
+     * 获取agv名称
      *
-     * @return agv_name - agv name
+     * @return agv_name - agv名称
      */
     public String getAgvName() {
         return agvName;
     }
 
     /**
-     * 设置agv name
+     * 设置agv名称
      *
-     * @param agvName agv name
+     * @param agvName agv名称
      */
     public void setAgvName(String agvName) {
         this.agvName = agvName;

@@ -1,7 +1,7 @@
 package edu.szu.Impl;
 
-import edu.szu.ShelfService;
-import edu.szu.mapper.ShelfInfoMapper;
+import edu.szu.OutShelfService;
+import edu.szu.mapper.OutShelfInfoMapper;
 import edu.szu.pojo.ShelfInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +13,10 @@ import tk.mybatis.mapper.entity.Example;
 import java.util.List;
 
 @Service
-public class ShelfServiceImpl implements ShelfService {
+public class ShelfServiceImpl implements OutShelfService {
 
     @Autowired
-    private ShelfInfoMapper shelfInfoMapper;
+    private OutShelfInfoMapper shelfInfoMapper;
 
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override

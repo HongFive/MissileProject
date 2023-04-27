@@ -1,7 +1,7 @@
 package edu.szu.controller;
 
-import edu.szu.AgvService;
-import edu.szu.ShelfService;
+import edu.szu.OutAgvService;
+import edu.szu.OutShelfService;
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
@@ -18,10 +18,10 @@ import java.util.*;
 public class HelloController {
 
     @Autowired
-    private ShelfService shelfService;
+    private OutShelfService shelfService;
 
     @Autowired
-    private AgvService agvService;
+    private OutAgvService agvService;
 
     //上装载区从左边道运行路径长度
     double upLeftPathWeight = 1122;

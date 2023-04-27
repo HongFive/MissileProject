@@ -1,9 +1,7 @@
 package edu.szu.pojo.vo;
 
-import edu.szu.pojo.OutShelfInfo;
 import edu.szu.pojo.ShelfInfo;
 
-import javax.persistence.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -29,7 +27,7 @@ public class NodePoint {
     /**
      * 该点位货架信息（如果有）
      */
-    public List<OutShelfInfo> shelfs;
+    public List<ShelfInfo> shelfs;
 
     /**
      * 该点位是否被占用
@@ -42,7 +40,7 @@ public class NodePoint {
      */
     public ReprintArea area;
 
-    public NodePoint(Integer id, String pathnum, LinkedHashMap<String,Double> pointlist, List<OutShelfInfo> shelfs, Integer state, ReprintArea area) {
+    public NodePoint(Integer id, String pathnum, LinkedHashMap<String,Double> pointlist, List<ShelfInfo> shelfs, Integer state, ReprintArea area) {
         this.id = id;
         this.pathNum=pathnum;
         this.pointList = pointlist;
@@ -80,11 +78,11 @@ public class NodePoint {
         return state;
     }
 
-    public List<OutShelfInfo> getShelfs() {
+    public List<ShelfInfo> getShelfs() {
         return shelfs;
     }
 
-    public void setShelfs(List<OutShelfInfo> shelfs) {
+    public void setShelfs(List<ShelfInfo> shelfs) {
         this.shelfs = shelfs;
     }
 

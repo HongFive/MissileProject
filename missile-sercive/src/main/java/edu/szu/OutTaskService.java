@@ -4,7 +4,7 @@ import edu.szu.pojo.TaskInfo;
 
 import java.util.List;
 
-public interface TaskService {
+public interface OutTaskService {
 
     /**
      * 查找所有任务信息

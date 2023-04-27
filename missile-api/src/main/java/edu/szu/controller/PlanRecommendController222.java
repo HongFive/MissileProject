@@ -1,6 +1,6 @@
 package edu.szu.controller;
-import edu.szu.AgvService;
-import edu.szu.ShelfService;
+import edu.szu.OutAgvService;
+import edu.szu.OutShelfService;
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
@@ -21,10 +21,10 @@ import java.util.List;
 public class PlanRecommendController222 {
 
     @Autowired
-    public ShelfService shelfService;
+    public OutShelfService shelfService;
 
     @Autowired
-    public AgvService agvService;
+    public OutAgvService agvService;
 
     NodePoint[] a1;
     double[][] matrix;

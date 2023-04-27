@@ -4,7 +4,7 @@ import edu.szu.pojo.AgvInfo;
 
 import java.util.List;
 
-public interface AgvService {
+public interface OutAgvService {
     /**
      * 查找所有agv信息
      */

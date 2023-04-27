@@ -1,10 +1,15 @@
 package edu.szu.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Date;
 
-@Table(name = "task_recommend_result_info")
+@Table(name = "out_task_recommend_result_info")
 public class TaskRecommendResultInfo {
+    /**
+     * 主键
+     */
     @Id
     private Integer id;
 
@@ -74,6 +79,9 @@ public class TaskRecommendResultInfo {
     @Column(name = "car_used")
     private String carUsed;
 
+    /**
+     * 停车位
+     */
     private String park;
 
     /**
@@ -88,14 +96,18 @@ public class TaskRecommendResultInfo {
     private Date insertTimestamp;
 
     /**
-     * @return id
+     * 获取主键
+     *
+     * @return id - 主键
      */
     public Integer getId() {
         return id;
     }
 
     /**
-     * @param id
+     * 设置主键
+     *
+     * @param id 主键
      */
     public void setId(Integer id) {
         this.id = id;
@@ -300,14 +312,18 @@ public class TaskRecommendResultInfo {
     }
 
     /**
-     * @return park
+     * 获取停车位
+     *
+     * @return park - 停车位
      */
     public String getPark() {
         return park;
     }
 
     /**
-     * @param park
+     * 设置停车位
+     *
+     * @param park 停车位
      */
     public void setPark(String park) {
         this.park = park;

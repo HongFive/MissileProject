@@ -1,9 +1,11 @@
 package edu.szu.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Date;
 
-@Table(name = "shelf_info")
+@Table(name = "out_shelf_info")
 public class ShelfInfo {
     /**
      * 主键自增
@@ -59,10 +61,6 @@ public class ShelfInfo {
      */
     @Column(name = "equipment_id")
     private String equipmentId;
-
-    public ShelfInfo() {
-        super();
-    }
 
     /**
      * 获取主键自增

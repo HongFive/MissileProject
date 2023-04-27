@@ -1,9 +1,14 @@
 package edu.szu.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-@Table(name = "algorithm_config_info")
+@Table(name = "out_algorithm_config_info")
 public class AlgorithmConfigInfo {
+    /**
+     * 主键
+     */
     @Id
     private Integer id;
 
@@ -26,14 +31,18 @@ public class AlgorithmConfigInfo {
     private Float agvLoadTime;
 
     /**
-     * @return id
+     * 获取主键
+     *
+     * @return id - 主键
      */
     public Integer getId() {
         return id;
     }
 
     /**
-     * @param id
+     * 设置主键
+     *
+     * @param id 主键
      */
     public void setId(Integer id) {
         this.id = id;

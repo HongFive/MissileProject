@@ -1,9 +1,7 @@
 package edu.szu.controller;
 
 import edu.szu.pojo.AgvInfo;
-import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
-import edu.szu.pojo.vo.ReprintArea;
 
 import java.util.*;
 
@@ -118,7 +116,7 @@ public class GraphOfMatrix {
     /**
      * 获取agv往返路径
      */
-    public LinkedHashMap<AgvInfo,List<NodePoint>> findShortPaths(double[][] Matrix,LinkedHashMap<AgvInfo,NodePoint> nodes,int src){
+    public LinkedHashMap<AgvInfo,List<NodePoint>> findShortPaths(double[][] Matrix, LinkedHashMap<AgvInfo,NodePoint> nodes, int src){
         LinkedHashMap<AgvInfo,List<NodePoint>> paths= new LinkedHashMap<>();
 
         //遍历目标节点数组，对每个目标节点寻找最短路径

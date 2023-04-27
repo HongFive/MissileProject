@@ -1,9 +1,11 @@
 package edu.szu.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Date;
 
-@Table(name = "task_info")
+@Table(name = "out_task_info")
 public class TaskInfo {
     /**
      * 主键

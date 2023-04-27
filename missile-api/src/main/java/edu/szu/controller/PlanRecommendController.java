@@ -1,6 +1,6 @@
 package edu.szu.controller;
-import edu.szu.AgvService;
-import edu.szu.ShelfService;
+import edu.szu.OutAgvService;
+import edu.szu.OutShelfService;
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.vo.NodePoint;
@@ -9,7 +9,6 @@ import edu.szu.utils.JSONResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,10 +24,10 @@ import java.util.List;
 public class PlanRecommendController {
 
     @Autowired
-    public ShelfService shelfService;
+    public OutShelfService shelfService;
 
     @Autowired
-    public AgvService agvService;
+    public OutAgvService agvService;
 
     NodePoint[] a1;
     double[][] matrix;

@@ -1,9 +1,9 @@
 package edu.szu.mapper;
 
-import edu.szu.pojo.TaskInfo;
+import edu.szu.pojo.AgvInfo;
 import edu.szu.utils.MyMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface TaskInfoMapper extends MyMapper<TaskInfo> {
+public interface OutAgvInfoMapper extends MyMapper<AgvInfo> {
 }

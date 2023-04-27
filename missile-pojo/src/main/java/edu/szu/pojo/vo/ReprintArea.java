@@ -1,9 +1,7 @@
 package edu.szu.pojo.vo;
 
 import edu.szu.pojo.AgvInfo;
-import edu.szu.pojo.OutAgvInfo;
 
-import javax.persistence.*;
 import java.util.List;
 
 public class ReprintArea {
@@ -17,9 +15,9 @@ public class ReprintArea {
     /**
      * 转载区agv信息
      */
-    public List<OutAgvInfo> agvInfoList;
+    public List<AgvInfo> agvInfoList;
 
-    public ReprintArea(Integer areaId, List<OutAgvInfo> agvInfoList) {
+    public ReprintArea(Integer areaId, List<AgvInfo> agvInfoList) {
         AreaId = areaId;
         this.agvInfoList = agvInfoList;
     }
@@ -32,11 +30,11 @@ public class ReprintArea {
         AreaId = areaId;
     }
 
-    public List<OutAgvInfo> getAgvInfoList() {
+    public List<AgvInfo> getAgvInfoList() {
         return agvInfoList;
     }
 
-    public void setAgvInfoList(List<OutAgvInfo> agvInfoList) {
+    public void setAgvInfoList(List<AgvInfo> agvInfoList) {
         this.agvInfoList = agvInfoList;
     }
 }

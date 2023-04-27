@@ -4,7 +4,7 @@ import edu.szu.pojo.ShelfInfo;
 
 import java.util.List;
 
-public interface ShelfService {
+public interface OutShelfService {
     /**
      * 查找所有货架信息
      */

@@ -1,10 +1,15 @@
 package edu.szu.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Date;
 
-@Table(name = "task_plan_result_point_info")
+@Table(name = "out_task_plan_result_point_info")
 public class TaskPlanResultPointInfo {
+    /**
+     * 主键
+     */
     @Id
     private Integer id;
 
@@ -20,6 +25,9 @@ public class TaskPlanResultPointInfo {
     @Column(name = "agv_name")
     private String agvName;
 
+    /**
+     * 货架id
+     */
     @Column(name = "shelf_id")
     private Integer shelfId;
 
@@ -30,7 +38,7 @@ public class TaskPlanResultPointInfo {
     private String equipmentId;
 
     /**
-     * agv执行的动作
+     * agv执行的动作 straight:执行，turn:转弯，transplant:移载，load:加载，wait:等待
      */
     @Column(name = "agv_action")
     private String agvAction;
@@ -81,18 +89,25 @@ public class TaskPlanResultPointInfo {
     @Column(name = "insert_timestamp")
     private String insertTimestamp;
 
+    /**
+     * 修改时间
+     */
     @Column(name = "update_timestamp")
     private Date updateTimestamp;
 
     /**
-     * @return id
+     * 获取主键
+     *
+     * @return id - 主键
      */
     public Integer getId() {
         return id;
     }
 
     /**
-     * @param id
+     * 设置主键
+     *
+     * @param id 主键
      */
     public void setId(Integer id) {
         this.id = id;
@@ -135,14 +150,18 @@ public class TaskPlanResultPointInfo {
     }
 
     /**
-     * @return shelf_id
+     * 获取货架id
+     *
+     * @return shelf_id - 货架id
      */
     public Integer getShelfId() {
         return shelfId;
     }
 
     /**
-     * @param shelfId
+     * 设置货架id
+     *
+     * @param shelfId 货架id
      */
     public void setShelfId(Integer shelfId) {
         this.shelfId = shelfId;
@@ -167,18 +186,18 @@ public class TaskPlanResultPointInfo {
     }
 
     /**
-     * 获取agv执行的动作
+     * 获取agv执行的动作 straight:执行，turn:转弯，transplant:移载，load:加载，wait:等待
      *
-     * @return agv_action - agv执行的动作
+     * @return agv_action - agv执行的动作 straight:执行，turn:转弯，transplant:移载，load:加载，wait:等待
      */
     public String getAgvAction() {
         return agvAction;
     }
 
     /**
-     * 设置agv执行的动作
+     * 设置agv执行的动作 straight:执行，turn:转弯，transplant:移载，load:加载，wait:等待
      *
-     * @param agvAction agv执行的动作
+     * @param agvAction agv执行的动作 straight:执行，turn:转弯，transplant:移载，load:加载，wait:等待
      */
     public void setAgvAction(String agvAction) {
         this.agvAction = agvAction;
@@ -329,14 +348,18 @@ public class TaskPlanResultPointInfo {
     }
 
     /**
-     * @return update_timestamp
+     * 获取修改时间
+     *
+     * @return update_timestamp - 修改时间
      */
     public Date getUpdateTimestamp() {
         return updateTimestamp;
     }
 
     /**
-     * @param updateTimestamp
+     * 设置修改时间
+     *
+     * @param updateTimestamp 修改时间
      */
     public void setUpdateTimestamp(Date updateTimestamp) {
         this.updateTimestamp = updateTimestamp;

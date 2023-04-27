@@ -1,6 +1,6 @@
+edu\szu\OutTaskService.class
 edu\szu\Impl\TaskServiceImpl.class
-edu\szu\TaskService.class
 edu\szu\Impl\ShelfServiceImpl.class
-edu\szu\AgvService.class
-edu\szu\ShelfService.class
+edu\szu\OutShelfService.class
 edu\szu\Impl\AgvServiceImpl.class
+edu\szu\OutAgvService.class
