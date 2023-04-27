@@ -1,7 +1,17 @@
+edu\szu\mapper\OutTaskInfoMapper.class
 edu\szu\mapper\TaskInfoMapper.class
 edu\szu\Main.class
 edu\szu\mapper\TaskPlanResultPointInfoMapper.class
 edu\szu\mapper\TaskRecommendResultInfoMapper.class
+edu\szu\mapper\OutAlgorithmConfigInfoMapper.class
 edu\szu\mapper\AgvInfoMapper.class
 edu\szu\mapper\AlgorithmConfigInfoMapper.class
+edu\szu\mapper\ZktDeviceMapper.class
 edu\szu\mapper\ShelfInfoMapper.class
+edu\szu\mapper\OutAgvInfoMapper.class
+edu\szu\mapper\OutShelfInfoMapper.class
+edu\szu\mapper\ZktWarehouseShelfMapper.class
+edu\szu\mapper\ZktTaskMapper.class
+edu\szu\mapper\OutTaskPlanResultPointInfoMapper.class
+edu\szu\mapper\OutTaskRecommendResultInfoMapper.class
+edu\szu\mapper\ZktTaskFlowMapper.class

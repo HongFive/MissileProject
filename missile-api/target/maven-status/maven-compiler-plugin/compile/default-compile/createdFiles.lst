@@ -1,5 +1,5 @@
 edu\szu\Application.class
+edu\szu\controller\GraphOfMatrix.class
 edu\szu\controller\MyGraph.class
 edu\szu\Swagger2.class
 edu\szu\controller\PlanRecommendController333.class
-edu\szu\controller\GraphOfMatrix.class
