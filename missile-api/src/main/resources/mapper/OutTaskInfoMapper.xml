@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="edu.szu.mapper.OutTaskInfoMapper" >
+  <resultMap id="BaseResultMap" type="edu.szu.pojo.OutTaskInfo" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <id column="t_name" property="tName" jdbcType="VARCHAR" />
+    <result column="t_type" property="tType" jdbcType="VARCHAR" />
+    <result column="t_model" property="tModel" jdbcType="VARCHAR" />
+    <result column="t_num" property="tNum" jdbcType="INTEGER" />
+    <result column="t_reprintarea" property="tReprintarea" jdbcType="VARCHAR" />
+    <result column="t_person" property="tPerson" jdbcType="VARCHAR" />
+    <result column="t_add" property="tAdd" jdbcType="VARCHAR" />
+    <result column="t_starttime" property="tStarttime" jdbcType="TIMESTAMP" />
+    <result column="t_endtime" property="tEndtime" jdbcType="TIMESTAMP" />
+    <result column="t_source" property="tSource" jdbcType="VARCHAR" />
+    <result column="urgent" property="urgent" jdbcType="TINYINT" />
+    <result column="t_inserttime" property="tInserttime" jdbcType="TIMESTAMP" />
+    <result column="t_info" property="tInfo" jdbcType="LONGVARCHAR" />
+  </resultMap>
+</mapper>

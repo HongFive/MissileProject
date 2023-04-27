@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="edu.szu.mapper.OutTaskRecommendResultInfoMapper" >
+  <resultMap id="BaseResultMap" type="edu.szu.pojo.OutTaskRecommendResultInfo" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="t_name" property="tName" jdbcType="VARCHAR" />
+    <result column="equipment_recommend" property="equipmentRecommend" jdbcType="VARCHAR" />
+    <result column="equipment_used" property="equipmentUsed" jdbcType="VARCHAR" />
+    <result column="shelf_recommend" property="shelfRecommend" jdbcType="VARCHAR" />
+    <result column="shelf_used" property="shelfUsed" jdbcType="VARCHAR" />
+    <result column="agv_recommend" property="agvRecommend" jdbcType="VARCHAR" />
+    <result column="agv_used" property="agvUsed" jdbcType="VARCHAR" />
+    <result column="reprint_area_recommend" property="reprintAreaRecommend" jdbcType="VARCHAR" />
+    <result column="reprint_area_used" property="reprintAreaUsed" jdbcType="VARCHAR" />
+    <result column="car_recommend" property="carRecommend" jdbcType="VARCHAR" />
+    <result column="car_used" property="carUsed" jdbcType="VARCHAR" />
+    <result column="park" property="park" jdbcType="VARCHAR" />
+    <result column="path" property="path" jdbcType="VARCHAR" />
+    <result column="insert_timestamp" property="insertTimestamp" jdbcType="TIMESTAMP" />
+  </resultMap>
+</mapper>
