@@ -7,7 +7,7 @@ import java.util.List;
 public class ReprintArea {
 
     /**
-     * 上转载区与下转载区
+     * 上停放区与下停放区
      */
 
     private Integer AreaId;
