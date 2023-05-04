@@ -31,7 +31,7 @@ public class NodePoint {
 
     /**
      * 该点位是否被占用
-     * true代表被占用，false代表没有
+     * 1代表被占用，0代表没有
      */
     private Integer state;
 

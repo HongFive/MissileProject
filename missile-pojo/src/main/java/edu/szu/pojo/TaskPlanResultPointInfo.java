@@ -1,5 +1,7 @@
 package edu.szu.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -12,6 +14,12 @@ public class TaskPlanResultPointInfo {
      */
     @Id
     private Integer id;
+
+    /**
+     * 任务id
+     */
+    @Column(name="t_name")
+    private Long taskId;
 
     /**
      * 任务名称
@@ -63,6 +71,7 @@ public class TaskPlanResultPointInfo {
     /**
      * 点位占用开始时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s",timezone="GMT+8")
     @Column(name = "start_timestamp")
     private Date startTimestamp;
 
@@ -75,6 +84,7 @@ public class TaskPlanResultPointInfo {
     /**
      * 站位占用结束时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s",timezone="GMT+8")
     @Column(name = "end_timestamp")
     private Date endTimestamp;
 
@@ -95,6 +105,8 @@ public class TaskPlanResultPointInfo {
     @Column(name = "update_timestamp")
     private Date updateTimestamp;
 
+
+
     /**
      * 获取主键
      *
@@ -111,6 +123,15 @@ public class TaskPlanResultPointInfo {
      */
     public void setId(Integer id) {
         this.id = id;
+    }
+
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 
     /**

@@ -4,3 +4,5 @@ edu\szu\Impl\ShelfServiceImpl.class
 edu\szu\OutShelfService.class
 edu\szu\Impl\AgvServiceImpl.class
 edu\szu\OutAgvService.class
+edu\szu\Impl\ZktTaskServiceImpl.class
+edu\szu\ZktTaskSercive.class

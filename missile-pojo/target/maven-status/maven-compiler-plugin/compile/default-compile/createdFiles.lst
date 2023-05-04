@@ -1,12 +1,13 @@
-edu\szu\pojo\ShelfInfo.class
-edu\szu\pojo\AlgorithmConfigInfo.class
-edu\szu\pojo\vo\NodePoint.class
 edu\szu\pojo\ZktTaskFlow.class
 edu\szu\pojo\TaskRecommendResultInfo.class
-edu\szu\pojo\vo\ReprintArea.class
 edu\szu\pojo\ZktWarehouseShelf.class
 edu\szu\pojo\TaskInfo.class
 edu\szu\pojo\ZktTask.class
+edu\szu\pojo\ShelfInfo.class
+edu\szu\pojo\AlgorithmConfigInfo.class
+edu\szu\pojo\vo\NodePoint.class
+edu\szu\pojo\vo\ReprintArea.class
 edu\szu\pojo\AgvInfo.class
 edu\szu\pojo\TaskPlanResultPointInfo.class
+edu\szu\pojo\vo\ResultBody.class
 edu\szu\pojo\ZktDevice.class

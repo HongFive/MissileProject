@@ -5,6 +5,8 @@ import edu.szu.mapper.OutAgvInfoMapper;
 import edu.szu.pojo.AgvInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
@@ -15,11 +17,13 @@ public class AgvServiceImpl implements OutAgvService {
     @Autowired
     private OutAgvInfoMapper agvInfoMapper;
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public List<AgvInfo> queryAgvList() {
         return agvInfoMapper.selectAll();
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public AgvInfo queryAgvInfo(Integer id) {
         Example agvExample = new Example(AgvInfo.class);

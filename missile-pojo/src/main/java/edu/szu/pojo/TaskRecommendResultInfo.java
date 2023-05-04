@@ -1,5 +1,7 @@
 package edu.szu.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -92,8 +94,25 @@ public class TaskRecommendResultInfo {
     /**
      * 入表时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s",timezone="GMT+8")
     @Column(name = "insert_timestamp")
     private Date insertTimestamp;
+
+    public TaskRecommendResultInfo(Integer id, String tName, String shelfRecommend, String shelfUsed, String agvRecommend, String agvUsed, String reprintAreaRecommend, String reprintAreaUsed, String carRecommend, String carUsed, String park, String path, Date insertTimestamp) {
+        this.id = id;
+        this.tName = tName;
+        this.shelfRecommend = shelfRecommend;
+        this.shelfUsed = shelfUsed;
+        this.agvRecommend = agvRecommend;
+        this.agvUsed = agvUsed;
+        this.reprintAreaRecommend = reprintAreaRecommend;
+        this.reprintAreaUsed = reprintAreaUsed;
+        this.carRecommend = carRecommend;
+        this.carUsed = carUsed;
+        this.park = park;
+        this.path = path;
+        this.insertTimestamp = insertTimestamp;
+    }
 
     /**
      * 获取主键

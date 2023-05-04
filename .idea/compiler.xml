@@ -8,10 +8,13 @@
         <outputRelativeToContentRoot value="true" />
         <module name="missile-common" />
         <module name="missile-sercive" />
-        <module name="missile-api" />
+        <module name="missile-Api" />
         <module name="missile-pojo" />
         <module name="missile-mapper" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="missile-api" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

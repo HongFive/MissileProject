@@ -62,6 +62,8 @@ public class ShelfInfo {
     @Column(name = "equipment_id")
     private String equipmentId;
 
+
+
     /**
      * 获取主键自增
      *

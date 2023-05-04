@@ -1,33 +1,19 @@
 package edu.szu.controller;
-import edu.szu.OutAgvService;
-import edu.szu.OutShelfService;
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
+import edu.szu.pojo.TaskInfo;
 import edu.szu.pojo.vo.NodePoint;
 import edu.szu.pojo.vo.ReprintArea;
 import edu.szu.utils.JSONResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-@RestController
-@RequestMapping("/planRecommend")
-@Api(value="任务推荐的接口", tags= {"任务推荐的controller"})
-public class PlanRecommendController {
+public class PlanRecommend {
 
-    @Autowired
-    public OutShelfService shelfService;
-
-    @Autowired
-    public OutAgvService agvService;
 
     NodePoint[] a1;
     double[][] matrix;
@@ -45,11 +31,16 @@ public class PlanRecommendController {
      *
      * @return
      */
-    @ApiOperation(value="任务推荐", notes="任务推荐的接口")
-    @PostMapping("/resource")
-    public JSONResult resourceRecommend(int taskNum) {
-        List<ShelfInfo> shelfInfoList = shelfService.queryShelfList();
-        List<AgvInfo> agvInfoList = agvService.queryAgvList();
+
+
+    public LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> resourceRecommend(TaskInfo taskInfo,List<ShelfInfo> shelfInfoList,List<AgvInfo> agvInfoList) {
+//        List<ShelfInfo> shelfInfoList = shelfService.queryShelfList();
+//        List<AgvInfo> agvInfoList = agvService.queryAgvList();
+
+        //获取任务信息
+//        TaskInfo taskInfo = taskService.queryTaskInfo(id);
+        //获取需要装备数量 taskNum = D的数量
+        int taskNum = taskInfo.gettNum();
 
         //测试案例1，货架满仓，小车上下各6辆均匀分布
         for (int i = 0; i < shelfInfoList.size(); i++) {
@@ -58,19 +49,20 @@ public class PlanRecommendController {
             }
         }
 
-        MyGraph graph = new MyGraph(118,true);
+        MyGraph graph = new MyGraph(123,true);
         graph = graph.initialGraph(agvInfoList,shelfInfoList);
         a1 = graph.arrayV;
         matrix = graph.Matrix;
         hm = graph.map;
 
-        a1[31].getShelfs().get(0).setState(false);
-        a1[31].getShelfs().get(1).setState(false);
+        //重置a1,记录初始状态
+        int[] tempa1 = new int[a1.length];
+        for (int i = 0; i < a1.length; i++) {
+            tempa1[i] = a1[i].getState();
+        }
 
-        a1[3].getShelfs().get(0).setState(false);
-        a1[3].getShelfs().get(1).setState(false);
 
-        HashMap<String,LinkedHashMap<AgvInfo,NodePoint>> map = taskRecommend(a1,matrix,hm,taskNum);
+        LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> map = taskRecommend(a1,matrix,hm,taskNum);
 
         for (String str : map.keySet()) {
             System.out.println(str);
@@ -78,6 +70,12 @@ public class PlanRecommendController {
                 System.out.println(hm.get(map.get(str).get(agv)));
             }
 
+        }
+
+
+        //第一阶段结束，恢复a1状态
+        for (int i = 0; i < a1.length; i++) {
+            a1[i].setState(tempa1[i]);
         }
 
         //拿到上下agv LIst
@@ -96,6 +94,10 @@ public class PlanRecommendController {
                         if(shelf.getState() == true){
                             if(shelf.getLayer() == 1) {
                                 shelf.setState(false);
+                                //如果货架已被拿空，更改state状态
+                                if(isNoneShelf(nodePoint)){
+                                    nodePoint.setState(1);
+                                }
                                 break;
                             }
                         }
@@ -103,6 +105,10 @@ public class PlanRecommendController {
                         if(shelf.getState() == true){
                             if(shelf.getLayer() == 2 || shelf.getLayer() == 3){
                                 shelf.setState(false);
+                                //如果货架已被拿空，更改state状态
+                                if(isNoneShelf(nodePoint)){
+                                    nodePoint.setState(1);
+                                }
                                 break;
                             }
                         }
@@ -112,21 +118,36 @@ public class PlanRecommendController {
         }
 
         //更新agv位置
+
         for (String str : map.keySet()) {
+            if(str.equals("uptoup")){
+                //加入agv
+                LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
+                for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
+                    a1[121].getArea().getAgvInfoList().add(agvInfo);
+                }
+            }
+            if(str.equals("downtodown")){
+                //加入agv
+                LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
+                for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
+                    a1[122].getArea().getAgvInfoList().add(agvInfo);
+                }
+            }
             if(str.equals("uptodown")){
                 //取出agv
                 LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
                 for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
-                    a1[0].getArea().getAgvInfoList().remove(agvInfo);
-                    a1[115].getArea().getAgvInfoList().add(agvInfo);
+                    a1[121].getArea().getAgvInfoList().remove(agvInfo);
+                    a1[122].getArea().getAgvInfoList().add(agvInfo);
                 }
             }
             if(str.equals("downtoup")){
                 //取出agv
                 LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
                 for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
-                    a1[115].getArea().getAgvInfoList().remove(agvInfo);
-                    a1[0].getArea().getAgvInfoList().add(agvInfo);
+                    a1[122].getArea().getAgvInfoList().remove(agvInfo);
+                    a1[121].getArea().getAgvInfoList().add(agvInfo);
                 }
             }
         }
@@ -136,140 +157,94 @@ public class PlanRecommendController {
         int upAgvNum = 0;
         int downAgvNum = 0;
         //第二阶段
+
+        LinkedHashMap<AgvInfo,NodePoint> secondStageRecUp = new LinkedHashMap<>();
+        LinkedHashMap<AgvInfo,NodePoint> secondStageRecDown = new LinkedHashMap<>();
+
+        int secondStageUpName = 1;
+        int secondStageDownName = 1;
+
         System.out.println("第二阶段");
         while (taskNum > 0){
-            AgvInfo agvInfo = null;
-            if(isup) {
-                agvInfo = a1[0].getArea().getAgvInfoList().get(upAgvNum);
-                upAgvNum = (upAgvNum+1)%6;
-            }else{
-                agvInfo = a1[115].getArea().getAgvInfoList().get(downAgvNum);
-                downAgvNum = (downAgvNum+1)%6;
-            }
-            NodePoint secondStageShort = findSecondStageShort(agvInfo, isup, a1, matrix, hm);
-            isup = !isup;
-            System.out.println(hm.get(secondStageShort));
-        }
+            for (int i = 0; i < 2; i++) {
+                AgvInfo agvInfo = null;
+                if(isup) {
+                    agvInfo = a1[121].getArea().getAgvInfoList().get(upAgvNum);
+                    upAgvNum = (upAgvNum+1)%6;
+                }else{
 
-        return JSONResult.ok(map);
-    }
 
-    public HashMap<String,LinkedHashMap<AgvInfo,NodePoint>> targetsRecommend(List<ShelfInfo> shelfInfoList,List<AgvInfo> agvInfoList,int taskNum) {
-
-        //测试案例1，货架满仓，小车上下各6辆均匀分布
-        for (int i = 0; i < shelfInfoList.size(); i++) {
-            if (!shelfInfoList.get(i).getState()) {
-                shelfInfoList.get(i).setState(true);
-            }
-        }
-
-        MyGraph graph = new MyGraph(118,true);
-        graph = graph.initialGraph(agvInfoList,shelfInfoList);
-
-        a1 = graph.arrayV;
-        matrix = graph.Matrix;
-        hm = graph.map;
-
-        a1[31].getShelfs().get(0).setState(false);
-        a1[31].getShelfs().get(1).setState(false);
-
-        a1[3].getShelfs().get(0).setState(false);
-        a1[3].getShelfs().get(1).setState(false);
-
-        HashMap<String,LinkedHashMap<AgvInfo,NodePoint>> map = taskRecommend(a1,matrix,hm,taskNum);
-
-        for (String str : map.keySet()) {
-            System.out.println(str);
-            for(AgvInfo agv : map.get(str).keySet()){
-                System.out.println(hm.get(map.get(str).get(agv)));
-            }
-
-        }
-
-        //拿到上下agv LIst
-        ArrayList<AgvInfo> upAgvList = new ArrayList<>();
-        ArrayList<AgvInfo> downAgvList = new ArrayList<>();
-
-        //更新货架状态
-        for (LinkedHashMap linkedHashMap : map.values()) {
-            for (Object o : linkedHashMap.keySet()) {
-                AgvInfo agv = (AgvInfo) o;
-                NodePoint nodePoint = (NodePoint)linkedHashMap.get(agv);
-
-                for (int i = 0; i < nodePoint.getShelfs().size(); i++) {
-                    ShelfInfo shelf = nodePoint.getShelfs().get(i);
-                    if(agv.getType().equals("单")){
-                        if(shelf.getState() == true){
-                            if(shelf.getLayer() == 1) {
-                                shelf.setState(false);
-                                break;
+                    agvInfo = a1[122].getArea().getAgvInfoList().get(downAgvNum);
+                    downAgvNum = (downAgvNum+1)%6;
+                }
+                NodePoint secondStageShort = findSecondStageShort(agvInfo, isup, a1, matrix, hm);
+                //将该点位的货架状态更新
+                if(agvInfo.getType().equals("单")){
+                    //遍历NodePoint的货架
+                    for (ShelfInfo shelf : secondStageShort.getShelfs()) {
+                        if(shelf.getLayer()==1 && shelf.getState()==true){
+                            shelf.setState(false);
+                            //如果货架已被拿空，更改state状态
+                            if(isNoneShelf(secondStageShort)){
+                                secondStageShort.setState(1);
                             }
+                            break;
                         }
-                    }else{
-                        if(shelf.getState() == true){
-                            if(shelf.getLayer() == 2 || shelf.getLayer() == 3){
-                                shelf.setState(false);
-                                break;
+                    }
+                }else{
+                    //遍历NodePoint的货架
+                    for (ShelfInfo shelf : secondStageShort.getShelfs()) {
+                        if((shelf.getLayer()==2 || shelf.getLayer()==3)&& shelf.getState()==true){
+                            shelf.setState(false);
+                            //如果货架已被拿空，更改state状态
+                            if(isNoneShelf(secondStageShort)){
+                                secondStageShort.setState(1);
                             }
+                            break;
                         }
                     }
                 }
-            }
-        }
 
-        //更新agv位置
-        for (String str : map.keySet()) {
-            if(str.equals("uptodown")){
-                //取出agv
-                LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
-                for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
-                    a1[0].getArea().getAgvInfoList().remove(agvInfo);
-                    a1[115].getArea().getAgvInfoList().add(agvInfo);
+                if(isup){
+                    //如果重复，更新HashMap
+                    if(secondStageRecUp.containsKey(agvInfo)){
+                        map.put("secondstageup"+(secondStageUpName++),secondStageRecUp);
+                        secondStageRecUp = new LinkedHashMap<>();
+                    }
+                    secondStageRecUp.put(agvInfo,secondStageShort);
+                }else{
+                    //如果重复，更新HashMap
+                    if(secondStageRecDown.containsKey(agvInfo)){
+                        map.put("secondstagedown"+(secondStageDownName++),secondStageRecDown);
+                        secondStageRecDown = new LinkedHashMap<>();
+                    }
+                    secondStageRecDown.put(agvInfo,secondStageShort);
                 }
+                System.out.println(hm.get(secondStageShort));
             }
-            if(str.equals("downtoup")){
-                //取出agv
-                LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
-                for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
-                    a1[115].getArea().getAgvInfoList().remove(agvInfo);
-                    a1[0].getArea().getAgvInfoList().add(agvInfo);
-                }
-            }
-        }
 
-        taskNum -= 12;
-        boolean isup = true;
-        int upAgvNum = 0;
-        int downAgvNum = 0;
-        //第二阶段
-        System.out.println("第二阶段");
-        while (taskNum > 0){
-            AgvInfo agvInfo = null;
-            if(isup) {
-                agvInfo = a1[0].getArea().getAgvInfoList().get(upAgvNum);
-                upAgvNum = (upAgvNum+1)%6;
-            }else{
-                agvInfo = a1[115].getArea().getAgvInfoList().get(downAgvNum);
-                downAgvNum = (downAgvNum+1)%6;
-            }
-            NodePoint secondStageShort = findSecondStageShort(agvInfo, isup, a1, matrix, hm);
             isup = !isup;
-            System.out.println(hm.get(secondStageShort));
+
+            taskNum -= 2;
         }
+
+        //加入map
+        map.put("secondstageup"+(secondStageUpName++),secondStageRecUp);
+        map.put("secondstagedown"+(secondStageDownName++),secondStageRecDown);
 
         return map;
     }
 
     //第一阶段前12个任务节点推荐
-    public  HashMap<String,LinkedHashMap<AgvInfo,NodePoint>> taskRecommend(NodePoint[] a1, double[][] matrix, HashMap<NodePoint, Integer> hm, int taskNum){
+    public  LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> taskRecommend(NodePoint[] a1, double[][] matrix, HashMap<NodePoint, Integer> hm, int taskNum){
 
         taskNum = taskNum>=12? 12:taskNum;
 
         //关闭下装载区到上装载区的通道
-        matrix[29][28] = Integer.MAX_VALUE;
+        matrix[30][29] = Integer.MAX_VALUE;
 
         //设定返回值
-        HashMap<String,LinkedHashMap<AgvInfo,NodePoint>> sblhw= new HashMap<>();
+        LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> sblhw= new LinkedHashMap<>();
 
         //返回HashMap
         LinkedHashMap<AgvInfo,NodePoint> upToUP = new LinkedHashMap<>();
@@ -280,8 +255,8 @@ public class PlanRecommendController {
         LinkedHashMap<AgvInfo, NodePoint> resultMap = new LinkedHashMap<AgvInfo,NodePoint>();
 
         //获取初始节点
-        NodePoint upPoint = a1[0];
-        NodePoint downPoint = a1[115];
+        NodePoint upPoint = a1[121];
+        NodePoint downPoint = a1[122];
 
         //上下装载区
         ReprintArea upReprint = upPoint.getArea();
@@ -352,6 +327,8 @@ public class PlanRecommendController {
                             //将点位加入到已使用点位
                             usedNodePoint.add(temp);
                             upUsedNodePoints.add(temp);
+                            //加入安全距离
+                            addSafeDistance(temp);
                             //将该agv出列
                             upAgvInfoList.remove(upAgvFirstSingle);
                         }
@@ -368,6 +345,8 @@ public class PlanRecommendController {
                                 //2. 加入到已使用点位
                                 usedNodePoint.add(temp);
                                 upUsedNodePoints.add(temp);
+                                //加入安全距离
+                                addSafeDistance(temp);
                                 //将该agv出列
                                 upAgvInfoList.remove(upAgvFirstDouble);
                             }
@@ -405,6 +384,8 @@ public class PlanRecommendController {
                     //加入到已使用点位
                     usedNodePoint.add(temp);
                     upUsedNodePoints.add(temp);
+                    //加入安全距离
+                    addSafeDistance(temp);
                     //agv出列
                     upAgvInfoList.remove(agv);
 
@@ -419,7 +400,7 @@ public class PlanRecommendController {
                     agv = downAgvInfoList.get(0);
 
                     // 打开通道
-                    matrix[29][28] = 33.281;
+                    matrix[30][29] = 39;
 
                     if(downToUpNodePoints.size() == 0) src = downPoint;
                     else src = downToUpNodePoints.get(downToUpNodePoints.size()-1);
@@ -434,11 +415,13 @@ public class PlanRecommendController {
                     //加入到已使用点位
                     usedNodePoint.add(temp);
                     downToUpNodePoints.add(temp);
+                    //加入安全距离
+                    addSafeDistance(temp);
                     //agv出列
                     downAgvInfoList.remove(agv);
 
                     //关闭通道
-                    matrix[29][28] = Integer.MAX_VALUE;
+                    matrix[30][29] = Integer.MAX_VALUE;
 
                     upfirst = false;
 
@@ -450,7 +433,7 @@ public class PlanRecommendController {
                     }else{
                         //非最后两个任务，调用两个agv
                         // 打开通道
-                        matrix[29][28] = 33.281;
+                        matrix[30][29] = 39;
                         for (int i = 0; i < 2; i++) {
 
                             setParam(visited,pathWeight,usedNodePoint);
@@ -470,11 +453,13 @@ public class PlanRecommendController {
                             //加入到已使用点位
                             usedNodePoint.add(temp);
                             downToUpNodePoints.add(temp);
+                            //加入安全距离
+                            addSafeDistance(temp);
                             //agv出列
                             downAgvInfoList.remove(agv);
                         }
                         //关闭通道
-                        matrix[29][28] = Integer.MAX_VALUE;
+                        matrix[30][29] = Integer.MAX_VALUE;
                     }
                 }
 
@@ -512,6 +497,8 @@ public class PlanRecommendController {
                             //将点位加入到已使用点位
                             usedNodePoint.add(temp);
                             downUsedNodePoints.add(temp);
+                            //加入安全距离
+                            addSafeDistance(temp);
                             //将该agv出列
                             downAgvInfoList.remove(downAgvFirstSingle);
                         }
@@ -528,6 +515,8 @@ public class PlanRecommendController {
                                 //2. 加入到已使用点位
                                 usedNodePoint.add(temp);
                                 downUsedNodePoints.add(temp);
+                                //加入安全距离
+                                addSafeDistance(temp);
                                 //将该agv出列
                                 downAgvInfoList.remove(downAgvFirstDouble);
                             }
@@ -564,6 +553,8 @@ public class PlanRecommendController {
                     //加入到已使用点位
                     usedNodePoint.add(temp);
                     downUsedNodePoints.add(temp);
+                    //加入安全距离
+                    addSafeDistance(temp);
                     //agv出列
                     downAgvInfoList.remove(agv);
 
@@ -578,7 +569,7 @@ public class PlanRecommendController {
                     agv = upAgvInfoList.get(0);
 
                     // 关闭通道
-                    matrix[57][30] = Integer.MAX_VALUE;
+                    matrix[60][32] = Integer.MAX_VALUE;
 
                     if(upToDownNodePoints.size() == 0) src = upPoint;
                     else src = upToDownNodePoints.get(upToDownNodePoints.size()-1);
@@ -593,18 +584,20 @@ public class PlanRecommendController {
                     //加入到已使用点位
                     usedNodePoint.add(temp);
                     upToDownNodePoints.add(temp);
+                    //加入安全距离
+                    addSafeDistance(temp);
                     //agv出列
                     upAgvInfoList.remove(agv);
 
                     //打开通道
-                    matrix[57][30] = 40.2881;
+                    matrix[60][32] = 52;
 
                 }
                 else if(downAgvInfoList.size() == 0){
                     //下方agv数量为0
                     //从上装载区调用两个agv
                     // 关闭通道
-                    matrix[57][30] = Integer.MAX_VALUE;
+                    matrix[60][32] = Integer.MAX_VALUE;
                     for (int i = 0; i < 2; i++) {
 
                         setParam(visited,pathWeight,usedNodePoint);
@@ -624,11 +617,13 @@ public class PlanRecommendController {
                         //加入到已使用点位
                         usedNodePoint.add(temp);
                         upToDownNodePoints.add(temp);
+                        //加入安全距离
+                        addSafeDistance(temp);
                         //agv出列
                         upAgvInfoList.remove(agv);
                     }
                     //打开通道
-                    matrix[57][30] = 40.2881;
+                    matrix[60][32] = 52;
                 }
             }
             upTask = !upTask;
@@ -644,19 +639,15 @@ public class PlanRecommendController {
     //第一阶段剩余任务节点推荐
     public NodePoint findSecondStageShort(AgvInfo agv,boolean isup,NodePoint[] a1, double[][] matrix, HashMap<NodePoint, Integer> hm){
 
-        this.a1 = a1;
-        this.matrix = matrix;
-        this.hm = hm;
-
         //寻找最近NodePoint
 
         //设置srcNodePoint
         NodePoint srcNodePoint = null;
         //srcNodePoint为上装载区
         if(isup){
-            srcNodePoint = a1[0];
+            srcNodePoint = a1[121];
         }else {
-            srcNodePoint = a1[115];
+            srcNodePoint = a1[122];
         }
 
         //设置visited数组并置为false
@@ -690,13 +681,32 @@ public class PlanRecommendController {
         return connectedPoints;
     }
 
+    public boolean isNoneShelf(NodePoint nodePoint){
+        for (ShelfInfo shelf : nodePoint.getShelfs()) {
+            if (shelf.getState()) return false;
+        }
+        return true;
+    }
+
+    /**
+     * 加入安全距离 将Nodepoint.state 置为1
+     * @param src
+     */
+    public void addSafeDistance(NodePoint src){
+        src.setState(1);
+        ArrayList<NodePoint> connectedNodes = getConnectedNodes(src);
+        for (NodePoint connectedNode : connectedNodes) {
+            //如果两点之间在安全距离内，置为1
+            if(matrix[hm.get(src)][hm.get(connectedNode)] == 10) connectedNode.setState(1);
+        }
+    }
+
     /*
      * type:agv类型
      * limit:最远距离
      * isup:判断是否为上装载区
      * pathWeight:记录路径weight
      * */
-
     public NodePoint shortestNodePoint(NodePoint src,NodePoint nowPoint,boolean[] visited,double curWeight,double minWeight,double[] pathWeight,boolean isup,int limit,String type,int upTaskLimit,int downTaskLimit){
 
 
@@ -706,7 +716,11 @@ public class PlanRecommendController {
             if(curWeight >= pathWeight[hm.get(nowPoint)]){
                 return null;
             }else{
-                return nowPoint;
+                if(nowPoint.getShelfs() != null && nowPoint.getState() == 0){
+                    return nowPoint;
+                }else{
+                    return null;
+                }
             }
 
         }
@@ -720,8 +734,8 @@ public class PlanRecommendController {
 
         NodePoint tempPoint = null;
 
-        //非货架节点或未出发,返回下个节点结果
-        if(nowPoint.getShelfs() == null || src==nowPoint){
+        //非货架节点或未出发或者该点被占用,返回下个节点结果
+        if(nowPoint.getShelfs() == null || src==nowPoint || nowPoint.getState() == 1){
             for (NodePoint connectedNode : getConnectedNodes(nowPoint)) {
                 //返回下个节点的结果
                 NodePoint nextPoint = shortestNodePoint(src,connectedNode, visited, curWeight + matrix[hm.get(nowPoint)][hm.get(connectedNode)], minWeight, pathWeight, isup,limit,type,upTaskLimit,downTaskLimit);
