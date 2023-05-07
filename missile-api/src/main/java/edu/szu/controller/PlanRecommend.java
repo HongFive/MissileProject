@@ -2,6 +2,7 @@ package edu.szu.controller;
 import edu.szu.pojo.AgvInfo;
 import edu.szu.pojo.ShelfInfo;
 import edu.szu.pojo.TaskInfo;
+import edu.szu.pojo.ZktTask;
 import edu.szu.pojo.vo.NodePoint;
 import edu.szu.pojo.vo.ReprintArea;
 import edu.szu.utils.JSONResult;
@@ -33,21 +34,23 @@ public class PlanRecommend {
      */
 
 
-    public LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> resourceRecommend(TaskInfo taskInfo,List<ShelfInfo> shelfInfoList,List<AgvInfo> agvInfoList) {
+    public LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> resourceRecommend(ZktTask zktTask, List<ShelfInfo> shelfInfoList, List<AgvInfo> agvInfoList) {
 //        List<ShelfInfo> shelfInfoList = shelfService.queryShelfList();
 //        List<AgvInfo> agvInfoList = agvService.queryAgvList();
 
         //获取任务信息
 //        TaskInfo taskInfo = taskService.queryTaskInfo(id);
-        //获取需要装备数量 taskNum = D的数量
-        int taskNum = taskInfo.gettNum();
+        //获取需要装备数量 taskNum = D的数量,数据库的导弹数量是奇数类型（需要确认）
+        int taskNum = Integer.parseInt(zktTask.getNums());
 
-        //测试案例1，货架满仓，小车上下各6辆均匀分布
-        for (int i = 0; i < shelfInfoList.size(); i++) {
-            if (!shelfInfoList.get(i).getState()) {
-                shelfInfoList.get(i).setState(true);
-            }
-        }
+
+
+//        //测试案例1，货架满仓，小车上下各6辆均匀分布
+//        for (int i = 0; i < shelfInfoList.size(); i++) {
+//            if (!shelfInfoList.get(i).getState()) {
+//                shelfInfoList.get(i).setState(true);
+//            }
+//        }
 
         MyGraph graph = new MyGraph(123,true);
         graph = graph.initialGraph(agvInfoList,shelfInfoList);
@@ -139,7 +142,9 @@ public class PlanRecommend {
                 LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
                 for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
                     a1[121].getArea().getAgvInfoList().remove(agvInfo);
-                    a1[122].getArea().getAgvInfoList().add(agvInfo);
+                    AgvInfo agvInfoNew = new AgvInfo();
+                    agvInfoNew = afz(agvInfo,agvInfoNew,true);
+                    a1[122].getArea().getAgvInfoList().add(agvInfoNew);
                 }
             }
             if(str.equals("downtoup")){
@@ -147,12 +152,19 @@ public class PlanRecommend {
                 LinkedHashMap<AgvInfo, NodePoint> agvInfoNodePointLinkedHashMap = map.get(str);
                 for (AgvInfo agvInfo : agvInfoNodePointLinkedHashMap.keySet()) {
                     a1[122].getArea().getAgvInfoList().remove(agvInfo);
-                    a1[121].getArea().getAgvInfoList().add(agvInfo);
+                    AgvInfo agvInfoNew = new AgvInfo();
+                    agvInfoNew = afz(agvInfo,agvInfoNew,false);
+                    a1[121].getArea().getAgvInfoList().add(agvInfoNew);
                 }
             }
         }
 
-        taskNum -= 12;
+        int tempTaskNum = 0;
+        for (LinkedHashMap<AgvInfo, NodePoint> value : map.values()) {
+            tempTaskNum+=value.size();
+        }
+        taskNum -= tempTaskNum;
+
         boolean isup = true;
         int upAgvNum = 0;
         int downAgvNum = 0;
@@ -164,18 +176,24 @@ public class PlanRecommend {
         int secondStageUpName = 1;
         int secondStageDownName = 1;
 
+        int upqy = a1[121].getArea().getAgvInfoList().size();
+        int downqy = a1[122].getArea().getAgvInfoList().size();
+
         System.out.println("第二阶段");
         while (taskNum > 0){
+
+            taskNum -= 2;
+
             for (int i = 0; i < 2; i++) {
                 AgvInfo agvInfo = null;
                 if(isup) {
                     agvInfo = a1[121].getArea().getAgvInfoList().get(upAgvNum);
-                    upAgvNum = (upAgvNum+1)%6;
+                    upAgvNum = (upAgvNum+1)%upqy;
                 }else{
 
 
                     agvInfo = a1[122].getArea().getAgvInfoList().get(downAgvNum);
-                    downAgvNum = (downAgvNum+1)%6;
+                    downAgvNum = (downAgvNum+1)%downqy;
                 }
                 NodePoint secondStageShort = findSecondStageShort(agvInfo, isup, a1, matrix, hm);
                 //将该点位的货架状态更新
@@ -221,11 +239,14 @@ public class PlanRecommend {
                     secondStageRecDown.put(agvInfo,secondStageShort);
                 }
                 System.out.println(hm.get(secondStageShort));
+                //判断单数情况
+                taskNum += 1;
+                if(taskNum==0) break;
+                taskNum -= 1;
             }
 
             isup = !isup;
 
-            taskNum -= 2;
         }
 
         //加入map
@@ -238,7 +259,6 @@ public class PlanRecommend {
     //第一阶段前12个任务节点推荐
     public  LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> taskRecommend(NodePoint[] a1, double[][] matrix, HashMap<NodePoint, Integer> hm, int taskNum){
 
-        taskNum = taskNum>=12? 12:taskNum;
 
         //关闭下装载区到上装载区的通道
         matrix[30][29] = Integer.MAX_VALUE;
@@ -266,6 +286,8 @@ public class PlanRecommend {
         List<AgvInfo> upAgvInfoList = upReprint.getAgvInfoList();
         List<AgvInfo> downAgvInfoList = downReprint.getAgvInfoList();
 
+        taskNum = taskNum>=upAgvInfoList.size()+downAgvInfoList.size()? upAgvInfoList.size()+downAgvInfoList.size():taskNum;
+
         //预占用点位
         ArrayList<NodePoint> usedNodePoint = new ArrayList<>();
         ArrayList<NodePoint> upUsedNodePoints = new ArrayList<>();
@@ -289,7 +311,7 @@ public class PlanRecommend {
         //下转载区第一个任务的行号
         int downTaskLimit = 26;
 
-        while(taskNum != 0){
+        while(taskNum > 0){
 
             taskNum -= 2;
             //按照上->下顺序分配2个任务
@@ -331,6 +353,10 @@ public class PlanRecommend {
                             addSafeDistance(temp);
                             //将该agv出列
                             upAgvInfoList.remove(upAgvFirstSingle);
+                            //判断单数情况
+                            taskNum += 1;
+                            if(taskNum==0) break;
+                            taskNum -= 1;
                         }
                         else{
                             //底层未找到，寻找高层
@@ -349,6 +375,10 @@ public class PlanRecommend {
                                 addSafeDistance(temp);
                                 //将该agv出列
                                 upAgvInfoList.remove(upAgvFirstDouble);
+                                //判断单数情况
+                                taskNum += 1;
+                                if(taskNum==0) break;
+                                taskNum -= 1;
                             }
                         }
 
@@ -388,6 +418,10 @@ public class PlanRecommend {
                     addSafeDistance(temp);
                     //agv出列
                     upAgvInfoList.remove(agv);
+                    //判断单数情况
+                    taskNum += 1;
+                    if(taskNum==0) break;
+                    taskNum -= 1;
 
                     //如果找到的是上转载区的第一个任务，设置行数限制
                     if(limit == 5){
@@ -427,8 +461,8 @@ public class PlanRecommend {
 
                 } else if (upAgvInfoList.size() == 0) {
                     //上装载区无agv 分为两种情况
-                    //1. 最后两个任务 无需调用agv
-                    if(taskNum == 0){
+                    //1. 最后的任务 无需调用agv
+                    if(taskNum <= 0){
                         taskNum += 2;
                     }else{
                         //非最后两个任务，调用两个agv
@@ -501,6 +535,10 @@ public class PlanRecommend {
                             addSafeDistance(temp);
                             //将该agv出列
                             downAgvInfoList.remove(downAgvFirstSingle);
+                            //判断单数情况
+                            taskNum += 1;
+                            if(taskNum==0) break;
+                            taskNum -= 1;
                         }
                         else{
                             //底层未找到，寻找高层
@@ -519,6 +557,10 @@ public class PlanRecommend {
                                 addSafeDistance(temp);
                                 //将该agv出列
                                 downAgvInfoList.remove(downAgvFirstDouble);
+                                //判断单数情况
+                                taskNum += 1;
+                                if(taskNum==0) break;
+                                taskNum -= 1;
                             }
                         }
 
@@ -557,6 +599,10 @@ public class PlanRecommend {
                     addSafeDistance(temp);
                     //agv出列
                     downAgvInfoList.remove(agv);
+                    //判断单数情况
+                    taskNum += 1;
+                    if(taskNum==0) break;
+                    taskNum -= 1;
 
                     //如果找到的是下转载区的第一个任务，设置行数限制
                     if(limit == 5){
@@ -710,13 +756,15 @@ public class PlanRecommend {
     public NodePoint shortestNodePoint(NodePoint src,NodePoint nowPoint,boolean[] visited,double curWeight,double minWeight,double[] pathWeight,boolean isup,int limit,String type,int upTaskLimit,int downTaskLimit){
 
 
+        if(curWeight < pathWeight[hm.get(nowPoint)]) pathWeight[hm.get(nowPoint)] = curWeight;
+
         //如果已经访问，直接return
         //若src等于当前节点，未出发，不判断visited
         if(visited[hm.get(nowPoint)] && !(src==nowPoint)) {
             if(curWeight >= pathWeight[hm.get(nowPoint)]){
                 return null;
             }else{
-                if(nowPoint.getShelfs() != null && nowPoint.getState() == 0){
+                if(nowPoint.getShelfs() != null && nowPoint.getState() == 0 && 1==2){
                     return nowPoint;
                 }else{
                     return null;
@@ -781,6 +829,7 @@ public class PlanRecommend {
                 }
             }
 
+
             //若都没找到
             for (NodePoint connectedNode : getConnectedNodes(nowPoint)) {
                 //返回下个节点的结果
@@ -822,6 +871,22 @@ public class PlanRecommend {
             if(agvInfo.getType().equals("双")) return agvInfo;
         }
         return null;
+    }
+
+    public AgvInfo afz(AgvInfo agvInfo1,AgvInfo agvInfo2,boolean utd){
+        agvInfo2.setId(agvInfo1.getId());
+        agvInfo2.setAgvName(agvInfo1.getAgvName());
+
+        String location = agvInfo1.getLocation();
+        if(utd){
+            location = location.replace("5","6");
+        }else{
+            location = location.replace("6","5");
+        }
+        agvInfo2.setLocation(location);
+
+        agvInfo2.setType(agvInfo1.getType());
+        return agvInfo2;
     }
 
 }

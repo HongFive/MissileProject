@@ -8,5 +8,5 @@ public interface ZktTaskSercive {
 
     public List<ZktTask> queryTaskList();
 
-    public ZktTask queryTask(Integer id);
+    public ZktTask queryTask(String id);
 }

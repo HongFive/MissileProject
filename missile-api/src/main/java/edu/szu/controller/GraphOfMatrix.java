@@ -375,22 +375,26 @@ public class GraphOfMatrix {
             if (entry.getKey().equals("downtoup")) downtoup=entry.getValue();
         }
 
+
         //四个部分 设定发车顺序 第一个任务优先 其余由内而外发车
         uptoup=uptoup.entrySet()
                 .stream()
                 .sorted(Comparator.comparingInt(e -> -Integer.parseInt(e.getValue().getPointList().keySet().iterator().next().split("-")[1])))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue, LinkedHashMap::new));
 
-        LinkedHashMap<AgvInfo, NodePoint> newMap = new LinkedHashMap<>();
-        Map.Entry<AgvInfo,NodePoint> lastEntry=null;
-        for (Map.Entry<AgvInfo,NodePoint> entry:uptoup.entrySet()){
-            lastEntry=entry;
+        if (uptoup.size()>1){
+            LinkedHashMap<AgvInfo, NodePoint> newMap = new LinkedHashMap<>();
+            Map.Entry<AgvInfo,NodePoint> lastEntry=null;
+            for (Map.Entry<AgvInfo,NodePoint> entry:uptoup.entrySet()){
+                lastEntry=entry;
+            }
+            assert lastEntry != null;
+            uptoup.remove(lastEntry.getKey());
+            newMap.put(lastEntry.getKey(),lastEntry.getValue());
+            newMap.putAll(uptoup);
+            uptoup=newMap;
         }
-        assert lastEntry != null;
-        uptoup.remove(lastEntry.getKey());
-        newMap.put(lastEntry.getKey(),lastEntry.getValue());
-        newMap.putAll(uptoup);
-        uptoup=newMap;
+
 
         uptodown=uptodown.entrySet()
                 .stream()
@@ -401,16 +405,19 @@ public class GraphOfMatrix {
                 .stream()
                 .sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getValue().getPointList().keySet().iterator().next().split("-")[1])))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-        LinkedHashMap<AgvInfo, NodePoint> newMap_ = new LinkedHashMap<>();
-        lastEntry=null;
-        for (Map.Entry<AgvInfo,NodePoint> entry:downtodown.entrySet()){
-            lastEntry=entry;
+
+        if (downtodown.size()>1){
+            LinkedHashMap<AgvInfo, NodePoint> newMap_ = new LinkedHashMap<>();
+            Map.Entry<AgvInfo,NodePoint> lastEntry=null;
+            for (Map.Entry<AgvInfo,NodePoint> entry:downtodown.entrySet()){
+                lastEntry=entry;
+            }
+            assert lastEntry != null;
+            downtodown.remove(lastEntry.getKey());
+            newMap_.put(lastEntry.getKey(),lastEntry.getValue());
+            newMap_.putAll(downtodown);
+            downtodown=newMap_;
         }
-        assert lastEntry != null;
-        downtodown.remove(lastEntry.getKey());
-        newMap_.put(lastEntry.getKey(),lastEntry.getValue());
-        newMap_.putAll(downtodown);
-        downtodown=newMap_;
 
         downtoup=downtoup.entrySet()
                 .stream()
@@ -421,35 +428,43 @@ public class GraphOfMatrix {
         Stack<Map.Entry<AgvInfo,NodePoint>> rightRoadStack= new Stack();
         Stack<Map.Entry<AgvInfo,NodePoint>> leftRoadStack=new Stack();
 
+        LinkedHashMap<AgvInfo,NodePoint> upRun=new LinkedHashMap<>();
         //右货架通道入栈
-        Map.Entry<AgvInfo,NodePoint> upFirst=uptoup.entrySet().iterator().next();
-        LinkedHashMap<AgvInfo,NodePoint> upRun=new LinkedHashMap<>(uptoup);
-        upRun.putAll(uptodown);
-        List<Map.Entry<AgvInfo, NodePoint>> tempList = new ArrayList<>(downtoup.entrySet());
-        Collections.reverse(tempList);
-        for (Map.Entry<AgvInfo, NodePoint> entry:tempList){
-            rightRoadStack.push(entry);
+        if (uptoup.size()>0){
+            Map.Entry<AgvInfo,NodePoint> upFirst=uptoup.entrySet().iterator().next();
+            upRun.putAll(uptoup);
+            upRun.putAll(uptodown);
+            List<Map.Entry<AgvInfo, NodePoint>> tempList = new ArrayList<>(downtoup.entrySet());
+            Collections.reverse(tempList);
+            for (Map.Entry<AgvInfo, NodePoint> entry:tempList){
+                rightRoadStack.push(entry);
+            }
+            for (Map.Entry<AgvInfo, NodePoint> entry:uptoup.entrySet()){
+                if (entry==upFirst) continue;
+                rightRoadStack.push(entry);
+            }
+            rightRoadStack.push(upFirst);
         }
-        for (Map.Entry<AgvInfo, NodePoint> entry:uptoup.entrySet()){
-            if (entry==upFirst) continue;
-            rightRoadStack.push(entry);
-        }
-        rightRoadStack.push(upFirst);
 
+
+        LinkedHashMap<AgvInfo,NodePoint> downRun=new LinkedHashMap<>();
+        if (downtodown.size()>0){
+            Map.Entry<AgvInfo,NodePoint> downFirst=downtodown.entrySet().iterator().next();
+            downRun.putAll(downtodown);
+            downRun.putAll(downtoup);
+            List<Map.Entry<AgvInfo, NodePoint>> tempList = new ArrayList<>(uptodown.entrySet());
+            Collections.reverse(tempList);
+            for (Map.Entry<AgvInfo, NodePoint> entry:tempList){
+                leftRoadStack.push(entry);
+            }
+            for (Map.Entry<AgvInfo, NodePoint> entry:downtodown.entrySet()){
+                if (entry==downFirst) continue;
+                leftRoadStack.push(entry);
+            }
+            leftRoadStack.push(downFirst);
+        }
         //左货架通道入栈
-        Map.Entry<AgvInfo,NodePoint> downFirst=downtodown.entrySet().iterator().next();
-        LinkedHashMap<AgvInfo,NodePoint> downRun=new LinkedHashMap<>(downtodown);
-        downRun.putAll(downtoup);
-        tempList = new ArrayList<>(uptodown.entrySet());
-        Collections.reverse(tempList);
-        for (Map.Entry<AgvInfo, NodePoint> entry:tempList){
-            leftRoadStack.push(entry);
-        }
-        for (Map.Entry<AgvInfo, NodePoint> entry:downtodown.entrySet()){
-            if (entry==downFirst) continue;
-            leftRoadStack.push(entry);
-        }
-        leftRoadStack.push(downFirst);
+
 
 
         //寻找路径

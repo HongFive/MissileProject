@@ -11,7 +11,7 @@ public class AgvInfo {
      * 主键
      */
     @Id
-    private Integer id;
+    private Long id;
 
     /**
      * agv名称
@@ -51,7 +51,7 @@ public class AgvInfo {
      *
      * @return id - 主键
      */
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
@@ -60,7 +60,7 @@ public class AgvInfo {
      *
      * @param id 主键
      */
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

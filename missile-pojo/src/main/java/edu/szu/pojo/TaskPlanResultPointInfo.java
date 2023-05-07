@@ -13,13 +13,16 @@ public class TaskPlanResultPointInfo {
      * 主键
      */
     @Id
-    private Integer id;
+    private long id;
 
     /**
      * 任务id
      */
-    @Column(name="t_name")
+    @Column(name="t_id")
     private Long taskId;
+
+    @Column(name="agv_id")
+    private Long agvId;
 
     /**
      * 任务名称
@@ -37,7 +40,7 @@ public class TaskPlanResultPointInfo {
      * 货架id
      */
     @Column(name = "shelf_id")
-    private Integer shelfId;
+    private Long shelfId;
 
     /**
      * 装备 id
@@ -71,7 +74,7 @@ public class TaskPlanResultPointInfo {
     /**
      * 点位占用开始时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s",timezone="GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s Z",timezone="GMT+8")
     @Column(name = "start_timestamp")
     private Date startTimestamp;
 
@@ -84,7 +87,8 @@ public class TaskPlanResultPointInfo {
     /**
      * 站位占用结束时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s",timezone="GMT+8")
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s Z",timezone="GMT+8")
     @Column(name = "end_timestamp")
     private Date endTimestamp;
 
@@ -102,18 +106,38 @@ public class TaskPlanResultPointInfo {
     /**
      * 修改时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:m:s",timezone="GMT+8")
     @Column(name = "update_timestamp")
     private Date updateTimestamp;
 
 
+    public TaskPlanResultPointInfo(Long taskId, Long agvId, String tName, String agvName, Long shelfId, String agvAction, String point, Date startTimestamp, Date endTimestamp) {
+        this.taskId = taskId;
+        this.agvId = agvId;
+        this.tName = tName;
+        this.agvName = agvName;
+        this.shelfId = shelfId;
+        this.agvAction = agvAction;
+        this.point = point;
+        this.startTimestamp = startTimestamp;
+        this.endTimestamp = endTimestamp;
+    }
 
     /**
      * 获取主键
      *
      * @return id - 主键
      */
-    public Integer getId() {
+    public long getId() {
         return id;
+    }
+
+    public Long getAgvId() {
+        return agvId;
+    }
+
+    public void setAgvId(Long agvId) {
+        this.agvId = agvId;
     }
 
     /**
@@ -121,7 +145,7 @@ public class TaskPlanResultPointInfo {
      *
      * @param id 主键
      */
-    public void setId(Integer id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -175,7 +199,7 @@ public class TaskPlanResultPointInfo {
      *
      * @return shelf_id - 货架id
      */
-    public Integer getShelfId() {
+    public Long getShelfId() {
         return shelfId;
     }
 
@@ -184,7 +208,7 @@ public class TaskPlanResultPointInfo {
      *
      * @param shelfId 货架id
      */
-    public void setShelfId(Integer shelfId) {
+    public void setShelfId(Long shelfId) {
         this.shelfId = shelfId;
     }
 

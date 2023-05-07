@@ -11,7 +11,7 @@ public class ShelfInfo {
      * 主键自增
      */
     @Id
-    private Integer id;
+    private Long id;
 
     /**
      * 库位编号
@@ -69,7 +69,7 @@ public class ShelfInfo {
      *
      * @return id - 主键自增
      */
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
@@ -78,7 +78,7 @@ public class ShelfInfo {
      *
      * @param id 主键自增
      */
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

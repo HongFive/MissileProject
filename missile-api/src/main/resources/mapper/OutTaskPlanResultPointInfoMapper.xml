@@ -5,11 +5,12 @@
     <!--
       WARNING - @mbg.generated
     -->
-    <id column="id" property="id" jdbcType="INTEGER" />
-    <result column="t_id" property="taskId" jdbcType="INTEGER" />
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="t_id" property="taskId" jdbcType="BIGINT" />
     <result column="t_name" property="tName" jdbcType="VARCHAR" />
+    <result column="agv_id" property="agvId" jdbcType="BIGINT" />
     <result column="agv_name" property="agvName" jdbcType="VARCHAR" />
-    <result column="shelf_id" property="shelfId" jdbcType="INTEGER" />
+    <result column="shelf_id" property="shelfId" jdbcType="BIGINT" />
     <result column="equipment_id" property="equipmentId" jdbcType="VARCHAR" />
     <result column="agv_action" property="agvAction" jdbcType="VARCHAR" />
     <result column="agv_action_num" property="agvActionNum" jdbcType="INTEGER" />

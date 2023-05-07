@@ -39,14 +39,14 @@ public class MyGraph extends GraphOfMatrix{
         }
         ReprintArea area_1 = new ReprintArea(33,agvs_up); //上停放区
         ReprintArea area_2 = new ReprintArea(35,agvs_down); //下停放区
-
-
+        ReprintArea area_3=new ReprintArea(1,new ArrayList<AgvInfo>());
+        ReprintArea area_4=new ReprintArea(2,new ArrayList<AgvInfo>());
 
         //初始化节点信息
 //        NodePoint node_25 = new NodePoint(0,"25",map0,null,FREE,area_1);
         //node_0 上装载区，点位27
         LinkedHashMap<String,Double> map0 = new LinkedHashMap<>();
-        NodePoint node_0 = new NodePoint(0,"27",map0,null,FREE,null);
+        NodePoint node_0 = new NodePoint(0,"27",map0,null,FREE,area_3);
         arrayV.add(node_0);
 
         LinkedHashMap<String,Double> map1=new LinkedHashMap<>();
@@ -64,9 +64,9 @@ public class MyGraph extends GraphOfMatrix{
 
         LinkedHashMap<String,Double> map3=new LinkedHashMap<>();
         for (int j = 1; j <= 4; j++) {
-            map2.put("3-"+j,10.0);
+            map3.put("3-"+j,10.0);
         }
-        map2.put("3-5",9.5);
+        map3.put("3-5",9.5);
         NodePoint node_3 = new NodePoint(3,"3",map3,null,FREE,null);
 
         arrayV.add(node_1);
@@ -310,7 +310,7 @@ public class MyGraph extends GraphOfMatrix{
         for (int j = 6; j > 1; j--) {
             map120.put("24-"+j,10.0);
         }
-        map119.put("24-1",15.0);
+        map120.put("24-1",15.0);
 
         NodePoint node_120 = new NodePoint(120,"24",map120,null,FREE,null);
 
@@ -333,7 +333,7 @@ public class MyGraph extends GraphOfMatrix{
 
         //node_123 下装载区，点位28
         LinkedHashMap<String,Double> map123 = new LinkedHashMap<>();
-        NodePoint node_123 = new NodePoint(123,"28",map123,null,FREE,null);
+        NodePoint node_123 = new NodePoint(123,"28",map123,null,FREE,area_4);
         arrayV.add(node_123);
 
         int size=arrayV.size();
