@@ -15,11 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/recommend")
@@ -484,7 +481,8 @@ public class HelloController {
         result.remove("uptodown");
         result.remove("downtodown");
         result.remove("downtoup");
-        runAgvsOne(taskInfo, graph, resultList, upOne, downOne);
+        AgvPathPlan agvPathPlan=new AgvPathPlan();
+        List<List<TaskPlanResultPointInfo>> TPRPlist=agvPathPlan.AgvPathDetail(taskInfo, graph, resultList, upOne, downOne);
 
 //        for (int i=0;i<upOne+downOne;i++){
 //            resultList.remove(0);
@@ -494,7 +492,6 @@ public class HelloController {
 
         if (result.size() > 0) {
             while (!resultList.isEmpty()) {
-                if (isThreadPool1Shutdown() && isThreadPool2Shutdown()) {
                     Map.Entry<String, LinkedHashMap<AgvInfo, NodePoint>> entry = result.entrySet().iterator().next();
                     int up=0;
                     int down=0;
@@ -513,487 +510,486 @@ public class HelloController {
                         }
                         result.remove(entry.getKey());
                     }
-                    runAgvsOne(taskInfo, graph, resultList, up, down);
-                }
+                    TPRPlist.addAll(agvPathPlan.AgvPathDetail(taskInfo, graph, resultList, up, down));
             }
         }
 
-        return JSONResult.ok();
+        return JSONResult.ok(TPRPlist);
 
     }
 
 
-    public static final Integer Go=1;
-    public static final Integer Back=0;
-    Stack<ThreadNode> rightRoadStack=new Stack<>();
-    Stack<ThreadNode> leftRoadStack=new Stack<>();
+//    public static final Integer Go=1;
+//    public static final Integer Back=0;
+//    Stack<ThreadNode> rightRoadStack=new Stack<>();
+//    Stack<ThreadNode> leftRoadStack=new Stack<>();
+//
+//    private ScheduledExecutorService executorService1;
+//
+//    private  ScheduledExecutorService executorService2;
+//
+//    private  boolean isThreadPool1Shutdown = false;
+//    private  boolean isThreadPool2Shutdown = false;
+//
+//    public boolean isThreadPool1Shutdown() {
+//        return isThreadPool1Shutdown;
+//    }
+//
+//    public void setThreadPool1Shutdown(boolean threadPool1Shutdown) {
+//        isThreadPool1Shutdown = threadPool1Shutdown;
+//    }
+//
+//    public boolean isThreadPool2Shutdown() {
+//        return isThreadPool2Shutdown;
+//    }
+//
+//    public void setThreadPool2Shutdown(boolean threadPool2Shutdown) {
+//        isThreadPool2Shutdown = threadPool2Shutdown;
+//    }
+//
+//    public void runAgvsOne(ZktTask task, MyGraph graph, List<ResultBody> resultBodyList, int upRunNum, int downRunNum) {
 
-    private ScheduledExecutorService executorService1;
-
-    private  ScheduledExecutorService executorService2;
-
-    private  boolean isThreadPool1Shutdown = false;
-    private  boolean isThreadPool2Shutdown = false;
-
-    public boolean isThreadPool1Shutdown() {
-        return isThreadPool1Shutdown;
-    }
-
-    public void setThreadPool1Shutdown(boolean threadPool1Shutdown) {
-        isThreadPool1Shutdown = threadPool1Shutdown;
-    }
-
-    public boolean isThreadPool2Shutdown() {
-        return isThreadPool2Shutdown;
-    }
-
-    public void setThreadPool2Shutdown(boolean threadPool2Shutdown) {
-        isThreadPool2Shutdown = threadPool2Shutdown;
-    }
-
-    public void runAgvsOne(ZktTask task, MyGraph graph, List<ResultBody> resultBodyList, int upRunNum, int downRunNum) {
-
-        int upPrintArea = 0;
-        int downPrintArea = 123;
-
-        //分配第一阶段任务
-        //上任务
-        List<ThreadNode> upAgvOne = new ArrayList<>();
-        List<ThreadNode> downAgvOne = new ArrayList<>();
-        for (int i = 0; i < upRunNum; i++) {
-            ResultBody res = resultBodyList.get(i);
-            ThreadNode node = new ThreadNode(res.getAgvInfo(), res.getPath(), res.getNode(), res.getShelf(), Go,false);
-            upAgvOne.add(node);
-        }
-        //下任务
-        for (int i = upRunNum; i <upRunNum+downRunNum; i++) {
-            ResultBody res = resultBodyList.get(i);
-            ThreadNode node = new ThreadNode(res.getAgvInfo(), res.getPath(), res.getNode(), res.getShelf(), Go,false);
-            downAgvOne.add(node);
-        }
-        for (int i=0;i<upRunNum+downRunNum;i++){
-            resultBodyList.remove(0);
-        }
-
-        //右货道栈初始化
-        if (upAgvOne.size()>0){
-            ThreadNode upFirst = upAgvOne.get(0);
-            for (int i = downAgvOne.size() - 1; i > 0; i--) {
-                if (downAgvOne.get(i).getPath().get(downAgvOne.get(i).getPath().size() - 1) == graph.arrayV[upPrintArea]) {
-                    rightRoadStack.push(downAgvOne.get(i));
-                }
-            }
-            for (ThreadNode node : upAgvOne) {
-                if (node == upFirst) continue;
-                if (node.getPath().get(node.getPath().size() - 1) == graph.arrayV[upPrintArea]) {
-                    rightRoadStack.push(node);
-                }
-            }
-            rightRoadStack.push(upFirst);
-        }
-
-
-        if (downAgvOne.size()>0){
-            //左货道栈初始化
-            ThreadNode downFirst = downAgvOne.get(0);
-            for (int i = upAgvOne.size() - 1; i > 0; i--) {
-                if (upAgvOne.get(i).getPath().get(upAgvOne.get(i).getPath().size() - 1) == graph.arrayV[downPrintArea]) {
-                    leftRoadStack.push(upAgvOne.get(i));
-                }
-            }
-            for (ThreadNode node : downAgvOne) {
-                if (node == downFirst) continue;
-                if (node.getPath().get(node.getPath().size() - 1) == graph.arrayV[downPrintArea]) {
-                    leftRoadStack.push(node);
-                }
-            }
-            leftRoadStack.push(downFirst);
-        }
-
-
-        executorService1 = Executors.newScheduledThreadPool(upAgvOne.size());
-        executorService2 = Executors.newScheduledThreadPool(downAgvOne.size());
-        isThreadPool1Shutdown=false;
-        isThreadPool2Shutdown=false;
-
-        //上出发
-        for (int i = 0; i < upAgvOne.size(); i++) {
-            ThreadNode agv = upAgvOne.get(i);
-            executorService1.schedule(() -> {
-                for (NodePoint np : agv.getPath()) {
-                    try {
-                        if (agv.getState().equals(Go)) {
-                            if (np.getPathNum().equals(agv.getAgv().getLocation().split("-")[0])&&!agv.getStart()) {//从停放区出发
-                                agv.setStart(true);
-                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((10/0.8)*1000));
-
-//                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
-                                System.out.println("shelfId:"+agv.getShelf().getId()+" taskId:"+task.getId()+task.getTaskName()+" agvName:" + agv.getAgv().getAgvName() + " point:" + agv.getAgv().getLocation() + " action:" + "start" + " begintime:" + beginTime+" endTime:" + time);
-//                                agv.newPath.add(agv.getAgv().getLocation());
-                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"start",agv.getAgv().getLocation(),beginTime,time);
-                                System.out.println(temp.getAgvAction()+temp.getPoint());
-                                taskPlanResultService.SaveTaskPlanResult(temp);
-                                continue;
-                            }
-                            if (agv.getStart()) {//车辆出发
-                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                    if (Integer.parseInt(entry.getKey().split("-")[1])<Integer.parseInt(agv.getAgv().getLocation().split("-")[1])) continue;
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                    Timestamp time=new Timestamp((long) ((entry.getValue() / 0.8)*1000));
-                                    Timestamp time = new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
-//                                    Thread.sleep((long) sleepTime);
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" +" begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                }
-                                agv.setStart(false);
-                                continue;
-                            }
-                            if (np.getPathNum().equals("8") || np.getPathNum().equals("14")) {//遇到弯道转弯
-                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
-                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
-//                                    Thread.sleep((long) sleepTime);
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                }
-                                continue;
-                            }
-                            if (np.getPathNum().equals("3")){
-                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                double sleepTime = (8.2 / 0.8) * 1000;
-                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((8.2 / 0.8) * 1000));
-//                                Thread.sleep((long) sleepTime);
-//                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "3-5" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                agv.newPath.add("3-5");
-                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","3-5",beginTime,time);
-                                taskPlanResultService.SaveTaskPlanResult(temp);
-                                continue;
-                            }
-                            if (np.getId().equals(agv.target.getId())) {//load
-                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                    int loadTime = 5 * 60 * 1000;
-                                    if (agv.getShelf().getLayer() == 3) loadTime = 9 * 60 * 1000;
-                                    else if (agv.getShelf().getLayer() == 2) loadTime = 7 * 60 * 1000;
-                                    Timestamp time=new Timestamp(beginTime.getTime()+loadTime);
-//                                    Thread.sleep(loadTime);
-                                    if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[0]){
-                                        while (!rightRoadStack.isEmpty() && rightRoadStack.peek() != agv){
-                                            Thread.sleep(500);
-                                        }
-                                        rightRoadStack.pop();
-                                    }else if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[123]){
-                                        while (!leftRoadStack.isEmpty() && leftRoadStack.peek() != agv){
-                                            Thread.sleep(500);
-                                        }
-                                        leftRoadStack.pop();
-                                    }
-                                    //装载完成
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "load" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"load",entry.getKey(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                    agv.setState(Back);
-                                }
-                                continue;
-                            }
-                            //正常行驶
-                            for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
-//                                Thread.sleep((long) sleepTime);
-//                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
-                                taskPlanResultService.SaveTaskPlanResult(temp);
-                            }
-                        } else if (agv.getState().equals(Back)) {//返程
-                            if (np == graph.arrayV[upPrintArea]) {//转载区转载导弹
-                                if (graph.arrayV[upPrintArea].getArea().getAgvInfoList().isEmpty()) {
-                                    graph.arrayV[upPrintArea].getArea().getAgvInfoList().add(agv.getAgv());
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                    int sleepTime = 8 * 60 * 1000;
-                                    Timestamp time=new Timestamp(beginTime.getTime()+sleepTime);
-//                                    Thread.sleep(sleepTime);
-                                    graph.arrayV[upPrintArea].getArea().getAgvInfoList().remove(agv.getAgv());
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + graph.arrayV[upPrintArea].getPathNum() + "-1" + " action:" + "transplant" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(graph.arrayV[upPrintArea].getPathNum() + "-1");
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"transplant",graph.arrayV[upPrintArea].getPathNum() + "-1",beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                }
-                            }else {
-                                List<Map.Entry<String, Double>> list = new ArrayList<>(np.getPointList().entrySet());
-                                Collections.reverse(list);
-                                if (np.getPathNum().equals("8")){
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                    double sleepTime = (8.2 / 0.8) * 1000;
-//                                    Thread.sleep((long) sleepTime);
-                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((8.2 / 0.8) * 1000));
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "8-5" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add("8-5");
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","8-5",beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                    continue;
-                                }
-                                if (np.getPathNum().equals("3") || np.getPathNum().equals("16")) {//遇到弯道转弯
-                                    for (Map.Entry<String, Double> entry : list) {
-                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                        double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                        Thread.sleep((long) sleepTime);
-                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
-//                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                        agv.newPath.add(entry.getKey());
-                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
-                                        taskPlanResultService.SaveTaskPlanResult(temp);
-                                    }
-                                }else {
-                                    for (Map.Entry<String, Double> entry : list) {
-                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                        if (entry.getKey().equals("1-1") && !graph.arrayV[upPrintArea].getArea().getAgvInfoList().isEmpty()) {
-                                            while (!graph.arrayV[upPrintArea].getArea().getAgvInfoList().isEmpty()) {
-                                                Thread.sleep(500);
-                                            }
-                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
-//                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "wait" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                            agv.newPath.add(entry.getKey());
-                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"wait",entry.getKey(),beginTime,time);
-                                            taskPlanResultService.SaveTaskPlanResult(temp);
-                                        } else {
-//                                            double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                            Thread.sleep((long) sleepTime);
-                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
-//                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" +" begintime:" + beginTime+ " endTime:" + endTime);
-//                                            agv.newPath.add(entry.getKey());
-                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
-                                            taskPlanResultService.SaveTaskPlanResult(temp);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, 3 * i, TimeUnit.SECONDS);
-        }
-
-        //下出发
-        for (int i = 0; i < downAgvOne.size(); i++) {
-            ThreadNode agv = downAgvOne.get(i);
-            executorService2.schedule(() -> {
-                for (NodePoint np : agv.getPath()) {
-                    try {
-                        if (agv.getState().equals(Go)) {
-                            //从停放区出发
-                            if (np.getPathNum().equals(agv.getAgv().getLocation().split("-")[0])&&!agv.getStart()) {
-                                agv.setStart(true);
-                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                Thread.sleep((long) ((10 / 0.8) * 1000));
-//                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
-                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((10 / 0.8) * 1000));
-//                                System.out.println("shelfId:"+agv.getShelf().getId()+" taskId:"+task.getId()+task.getTaskName()+"task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + agv.getAgv().getLocation() + " action:" + "start" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                agv.newPath.add(agv.getAgv().getLocation());
-                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"start",agv.getAgv().getLocation(),beginTime,time);
-                                taskPlanResultService.SaveTaskPlanResult(temp);
-                                continue;
-                            }
-                            if (agv.getStart()) {//车辆出发
-                                if (np.getId().equals(graph.arrayV[31].getId())){
-                                    for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                        if (Integer.parseInt(entry.getKey().split("-")[1])>Integer.parseInt(agv.getAgv().getLocation().split("-")[1])) continue;
-                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                        double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                        Thread.sleep((long) sleepTime);
-                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8) * 1000));
-//                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                        agv.newPath.add(entry.getKey());
-                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
-                                        taskPlanResultService.SaveTaskPlanResult(temp);
-                                        agv.setStart(false);
-                                    }
-                                }else {
-                                    for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                        if (!(entry.getKey().split("-")[1]).equals(agv.getAgv().getLocation().split("-")[1])) continue;
-                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                        double sleepTime = (10/0.8) * 1000;
-//                                        Thread.sleep((long) sleepTime);
-                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) ((10/0.8) * 1000));
-//                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                        agv.newPath.add(entry.getKey());
-                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
-                                        taskPlanResultService.SaveTaskPlanResult(temp);
-                                    }
-                                }
-                                continue;
-                            }
-                            if (np.getPathNum().equals("5") || np.getPathNum().equals("23")) {//遇到弯道转弯
-                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                    Thread.sleep((long) sleepTime);
-                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8) * 1000));
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                }
-                                continue;
-                            }
-                            if (np.getPathNum().equals("16")){
-                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                double sleepTime = (9 / 0.8) * 1000;
-//                                Thread.sleep((long) sleepTime);
-                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((9 / 0.8) * 1000));
-//                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "16-1" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                agv.newPath.add("16-1");
-                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","16-1",beginTime,time);
-                                taskPlanResultService.SaveTaskPlanResult(temp);
-                                continue;
-                            }
-                            if (np.getId().equals(agv.target.getId())) {//load
-                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                    int loadTime = 5 * 60 * 1000;
-                                    if (agv.getShelf().getLayer() == 3) loadTime = 9 * 60 * 1000;
-                                    else if (agv.getShelf().getLayer() == 2) loadTime = 7 * 60 * 1000;
-                                    Timestamp time=new Timestamp(beginTime.getTime()+loadTime);
-//                                    Thread.sleep(loadTime);
-                                    if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[0]){
-                                        while (!rightRoadStack.isEmpty() && rightRoadStack.peek() != agv){
-                                            Thread.sleep(500);
-                                        }
-                                        rightRoadStack.pop();
-                                    }else if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[123]){
-                                        while (!leftRoadStack.isEmpty() && leftRoadStack.peek() != agv){
-                                            Thread.sleep(500);
-                                        }
-                                        leftRoadStack.pop();
-                                    }
-                                    //装载完成
-                                    leftRoadStack.pop();
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "load" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"load",entry.getKey(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                    agv.setState(Back);
-                                }
-                            } else {//正常行驶
-                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                    Thread.sleep((long) sleepTime);
-                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8) * 1000));
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(entry.getKey());
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                }
-                            }
-                        } else if (agv.getState().equals(Back)) {//返程
-                            if (np == graph.arrayV[downPrintArea]) {//转载区转载导弹
-                                if (graph.arrayV[downPrintArea].getArea().getAgvInfoList().isEmpty()) {
-                                    graph.arrayV[downPrintArea].getArea().getAgvInfoList().add(agv.getAgv());
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                    int sleepTime = 8 * 60 * 1000;
-//                                    Thread.sleep(sleepTime);
-                                    Timestamp time=new Timestamp(beginTime.getTime()+sleepTime);
-                                    graph.arrayV[downPrintArea].getArea().getAgvInfoList().remove(agv.getAgv());
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + graph.arrayV[downPrintArea].getPathNum() + "-1" + " action:" + "transplant" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add(graph.arrayV[downPrintArea].getPathNum() + "-1");
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"transplant",graph.arrayV[downPrintArea].getPathNum(),beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                }
-                            }else {
-                                List<Map.Entry<String, Double>> list = new ArrayList<>(np.getPointList().entrySet());
-                                Collections.reverse(list);
-                                if (np.getPathNum().equals("23")){//回程变道
-                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                    double sleepTime = (9 / 0.8) * 1000;
-//                                    Thread.sleep((long) sleepTime);
-                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((9 / 0.8) * 1000));
-//                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "23-1" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                    agv.newPath.add("23-1");
-                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","23-1",beginTime,time);
-                                    taskPlanResultService.SaveTaskPlanResult(temp);
-                                    continue;
-                                }
-                                if (np.getPathNum().equals("3") || np.getPathNum().equals("16")) {//遇到弯道转弯
-                                    for (Map.Entry<String, Double> entry :list) {
-                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-//                                        double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                        Thread.sleep((long) sleepTime);
-                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) (entry.getValue() / 0.8) * 1000);
-//                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                        agv.newPath.add(entry.getKey());
-                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
-                                        taskPlanResultService.SaveTaskPlanResult(temp);
-                                    }
-                                }else {
-                                    for (Map.Entry<String, Double> entry : list) {
-                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
-                                        if (entry.getKey().equals("19-18") && !graph.arrayV[downPrintArea].getArea().getAgvInfoList().isEmpty()) {
-                                            while (!graph.arrayV[downPrintArea].getArea().getAgvInfoList().isEmpty()) {
-                                                Thread.sleep(500);
-                                            }
-                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) (entry.getValue() / 0.8) * 1000);
-//                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "wait" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                            agv.newPath.add(entry.getKey());
-                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"wait",entry.getKey(),beginTime,time);
-                                            taskPlanResultService.SaveTaskPlanResult(temp);
-                                        } else {
-//                                            double sleepTime = (entry.getValue() / 0.8) * 1000;
-//                                            Thread.sleep((long) sleepTime);
-                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) (entry.getValue() / 0.8) * 1000);
-//                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
-//                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
-//                                            agv.newPath.add(entry.getKey());
-                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
-                                            taskPlanResultService.SaveTaskPlanResult(temp);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, 3 * i, TimeUnit.SECONDS);
-        }
-        executorService1.shutdown();
-        isThreadPool1Shutdown=true;
-        executorService2.shutdown();
-        isThreadPool2Shutdown=true;
-        System.out.println("jieshula !");
-    }
+//        int upPrintArea = 0;
+//        int downPrintArea = 123;
+//
+//        //分配第一阶段任务
+//        //上任务
+//        List<ThreadNode> upAgvOne = new ArrayList<>();
+//        List<ThreadNode> downAgvOne = new ArrayList<>();
+//        for (int i = 0; i < upRunNum; i++) {
+//            ResultBody res = resultBodyList.get(i);
+//            ThreadNode node = new ThreadNode(res.getAgvInfo(), res.getPath(), res.getNode(), res.getShelf(), Go,false);
+//            upAgvOne.add(node);
+//        }
+//        //下任务
+//        for (int i = upRunNum; i <upRunNum+downRunNum; i++) {
+//            ResultBody res = resultBodyList.get(i);
+//            ThreadNode node = new ThreadNode(res.getAgvInfo(), res.getPath(), res.getNode(), res.getShelf(), Go,false);
+//            downAgvOne.add(node);
+//        }
+//        for (int i=0;i<upRunNum+downRunNum;i++){
+//            resultBodyList.remove(0);
+//        }
+//
+//        //右货道栈初始化
+//        if (upAgvOne.size()>0){
+//            ThreadNode upFirst = upAgvOne.get(0);
+//            for (int i = downAgvOne.size() - 1; i > 0; i--) {
+//                if (downAgvOne.get(i).getPath().get(downAgvOne.get(i).getPath().size() - 1) == graph.arrayV[upPrintArea]) {
+//                    rightRoadStack.push(downAgvOne.get(i));
+//                }
+//            }
+//            for (ThreadNode node : upAgvOne) {
+//                if (node == upFirst) continue;
+//                if (node.getPath().get(node.getPath().size() - 1) == graph.arrayV[upPrintArea]) {
+//                    rightRoadStack.push(node);
+//                }
+//            }
+//            rightRoadStack.push(upFirst);
+//        }
+//
+//
+//        if (downAgvOne.size()>0){
+//            //左货道栈初始化
+//            ThreadNode downFirst = downAgvOne.get(0);
+//            for (int i = upAgvOne.size() - 1; i > 0; i--) {
+//                if (upAgvOne.get(i).getPath().get(upAgvOne.get(i).getPath().size() - 1) == graph.arrayV[downPrintArea]) {
+//                    leftRoadStack.push(upAgvOne.get(i));
+//                }
+//            }
+//            for (ThreadNode node : downAgvOne) {
+//                if (node == downFirst) continue;
+//                if (node.getPath().get(node.getPath().size() - 1) == graph.arrayV[downPrintArea]) {
+//                    leftRoadStack.push(node);
+//                }
+//            }
+//            leftRoadStack.push(downFirst);
+//        }
+//
+//
+//        executorService1 = Executors.newScheduledThreadPool(upAgvOne.size());
+//        executorService2 = Executors.newScheduledThreadPool(downAgvOne.size());
+//        isThreadPool1Shutdown=false;
+//        isThreadPool2Shutdown=false;
+//
+//        //上出发
+//        for (int i = 0; i < upAgvOne.size(); i++) {
+//            ThreadNode agv = upAgvOne.get(i);
+//            executorService1.schedule(() -> {
+//                for (NodePoint np : agv.getPath()) {
+//                    try {
+//                        if (agv.getState().equals(Go)) {
+//                            if (np.getPathNum().equals(agv.getAgv().getLocation().split("-")[0])&&!agv.getStart()) {//从停放区出发
+//                                agv.setStart(true);
+//                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((10/0.8)*1000));
+//
+////                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
+//                                System.out.println("shelfId:"+agv.getShelf().getId()+" taskId:"+task.getId()+task.getTaskName()+" agvName:" + agv.getAgv().getAgvName() + " point:" + agv.getAgv().getLocation() + " action:" + "start" + " begintime:" + beginTime+" endTime:" + time);
+////                                agv.newPath.add(agv.getAgv().getLocation());
+//                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"start",agv.getAgv().getLocation(),beginTime,time);
+//                                System.out.println(temp.getAgvAction()+temp.getPoint());
+//                                taskPlanResultService.SaveTaskPlanResult(temp);
+//                                continue;
+//                            }
+//                            if (agv.getStart()) {//车辆出发
+//                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                    if (Integer.parseInt(entry.getKey().split("-")[1])<Integer.parseInt(agv.getAgv().getLocation().split("-")[1])) continue;
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                    Timestamp time=new Timestamp((long) ((entry.getValue() / 0.8)*1000));
+//                                    Timestamp time = new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
+////                                    Thread.sleep((long) sleepTime);
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" +" begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                }
+//                                agv.setStart(false);
+//                                continue;
+//                            }
+//                            if (np.getPathNum().equals("8") || np.getPathNum().equals("14")) {//遇到弯道转弯
+//                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
+////                                    Thread.sleep((long) sleepTime);
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                }
+//                                continue;
+//                            }
+//                            if (np.getPathNum().equals("3")){
+//                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                double sleepTime = (8.2 / 0.8) * 1000;
+//                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((8.2 / 0.8) * 1000));
+////                                Thread.sleep((long) sleepTime);
+////                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "3-5" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                agv.newPath.add("3-5");
+//                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","3-5",beginTime,time);
+//                                taskPlanResultService.SaveTaskPlanResult(temp);
+//                                continue;
+//                            }
+//                            if (np.getId().equals(agv.target.getId())) {//load
+//                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                    int loadTime = 5 * 60 * 1000;
+//                                    if (agv.getShelf().getLayer() == 3) loadTime = 9 * 60 * 1000;
+//                                    else if (agv.getShelf().getLayer() == 2) loadTime = 7 * 60 * 1000;
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+loadTime);
+////                                    Thread.sleep(loadTime);
+//                                    if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[0]){
+//                                        while (!rightRoadStack.isEmpty() && rightRoadStack.peek() != agv){
+//                                            Thread.sleep(500);
+//                                        }
+//                                        rightRoadStack.pop();
+//                                    }else if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[123]){
+//                                        while (!leftRoadStack.isEmpty() && leftRoadStack.peek() != agv){
+//                                            Thread.sleep(500);
+//                                        }
+//                                        leftRoadStack.pop();
+//                                    }
+//                                    //装载完成
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "load" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"load",entry.getKey(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    agv.setState(Back);
+//                                }
+//                                continue;
+//                            }
+//                            //正常行驶
+//                            for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
+////                                Thread.sleep((long) sleepTime);
+////                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
+//                                taskPlanResultService.SaveTaskPlanResult(temp);
+//                            }
+//                        } else if (agv.getState().equals(Back)) {//返程
+//                            if (np == graph.arrayV[upPrintArea]) {//转载区转载导弹
+//                                if (graph.arrayV[upPrintArea].getArea().getAgvInfoList().isEmpty()) {
+//                                    graph.arrayV[upPrintArea].getArea().getAgvInfoList().add(agv.getAgv());
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                    int sleepTime = 8 * 60 * 1000;
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+sleepTime);
+////                                    Thread.sleep(sleepTime);
+//                                    graph.arrayV[upPrintArea].getArea().getAgvInfoList().remove(agv.getAgv());
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + graph.arrayV[upPrintArea].getPathNum() + "-1" + " action:" + "transplant" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(graph.arrayV[upPrintArea].getPathNum() + "-1");
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"transplant",graph.arrayV[upPrintArea].getPathNum() + "-1",beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                }
+//                            }else {
+//                                List<Map.Entry<String, Double>> list = new ArrayList<>(np.getPointList().entrySet());
+//                                Collections.reverse(list);
+//                                if (np.getPathNum().equals("8")){
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                    double sleepTime = (8.2 / 0.8) * 1000;
+////                                    Thread.sleep((long) sleepTime);
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((8.2 / 0.8) * 1000));
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "8-5" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add("8-5");
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","8-5",beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    continue;
+//                                }
+//                                if (np.getPathNum().equals("3") || np.getPathNum().equals("16")) {//遇到弯道转弯
+//                                    for (Map.Entry<String, Double> entry : list) {
+//                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                        double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                        Thread.sleep((long) sleepTime);
+//                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
+////                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                        agv.newPath.add(entry.getKey());
+//                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
+//                                        taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    }
+//                                }else {
+//                                    for (Map.Entry<String, Double> entry : list) {
+//                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                        if (entry.getKey().equals("1-1") && !graph.arrayV[upPrintArea].getArea().getAgvInfoList().isEmpty()) {
+//                                            while (!graph.arrayV[upPrintArea].getArea().getAgvInfoList().isEmpty()) {
+//                                                Thread.sleep(500);
+//                                            }
+//                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
+////                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "wait" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                            agv.newPath.add(entry.getKey());
+//                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"wait",entry.getKey(),beginTime,time);
+//                                            taskPlanResultService.SaveTaskPlanResult(temp);
+//                                        } else {
+////                                            double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                            Thread.sleep((long) sleepTime);
+//                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
+////                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" +" begintime:" + beginTime+ " endTime:" + endTime);
+////                                            agv.newPath.add(entry.getKey());
+//                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
+//                                            taskPlanResultService.SaveTaskPlanResult(temp);
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }, 3 * i, TimeUnit.SECONDS);
+//        }
+//
+//        //下出发
+//        for (int i = 0; i < downAgvOne.size(); i++) {
+//            ThreadNode agv = downAgvOne.get(i);
+//            executorService2.schedule(() -> {
+//                for (NodePoint np : agv.getPath()) {
+//                    try {
+//                        if (agv.getState().equals(Go)) {
+//                            //从停放区出发
+//                            if (np.getPathNum().equals(agv.getAgv().getLocation().split("-")[0])&&!agv.getStart()) {
+//                                agv.setStart(true);
+//                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                Thread.sleep((long) ((10 / 0.8) * 1000));
+////                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
+//                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((10 / 0.8) * 1000));
+////                                System.out.println("shelfId:"+agv.getShelf().getId()+" taskId:"+task.getId()+task.getTaskName()+"task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + agv.getAgv().getLocation() + " action:" + "start" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                agv.newPath.add(agv.getAgv().getLocation());
+//                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"start",agv.getAgv().getLocation(),beginTime,time);
+//                                taskPlanResultService.SaveTaskPlanResult(temp);
+//                                continue;
+//                            }
+//                            if (agv.getStart()) {//车辆出发
+//                                if (np.getId().equals(graph.arrayV[31].getId())){
+//                                    for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                        if (Integer.parseInt(entry.getKey().split("-")[1])>Integer.parseInt(agv.getAgv().getLocation().split("-")[1])) continue;
+//                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                        double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                        Thread.sleep((long) sleepTime);
+//                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8) * 1000));
+////                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                        agv.newPath.add(entry.getKey());
+//                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
+//                                        taskPlanResultService.SaveTaskPlanResult(temp);
+//                                        agv.setStart(false);
+//                                    }
+//                                }else {
+//                                    for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                        if (!(entry.getKey().split("-")[1]).equals(agv.getAgv().getLocation().split("-")[1])) continue;
+//                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                        double sleepTime = (10/0.8) * 1000;
+////                                        Thread.sleep((long) sleepTime);
+//                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) ((10/0.8) * 1000));
+////                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                        agv.newPath.add(entry.getKey());
+//                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
+//                                        taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    }
+//                                }
+//                                continue;
+//                            }
+//                            if (np.getPathNum().equals("5") || np.getPathNum().equals("23")) {//遇到弯道转弯
+//                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                    Thread.sleep((long) sleepTime);
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8) * 1000));
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                }
+//                                continue;
+//                            }
+//                            if (np.getPathNum().equals("16")){
+//                                Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                double sleepTime = (9 / 0.8) * 1000;
+////                                Thread.sleep((long) sleepTime);
+//                                Timestamp time=new Timestamp(beginTime.getTime()+(long) ((9 / 0.8) * 1000));
+////                                Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "16-1" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                agv.newPath.add("16-1");
+//                                TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","16-1",beginTime,time);
+//                                taskPlanResultService.SaveTaskPlanResult(temp);
+//                                continue;
+//                            }
+//                            if (np.getId().equals(agv.target.getId())) {//load
+//                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                    int loadTime = 5 * 60 * 1000;
+//                                    if (agv.getShelf().getLayer() == 3) loadTime = 9 * 60 * 1000;
+//                                    else if (agv.getShelf().getLayer() == 2) loadTime = 7 * 60 * 1000;
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+loadTime);
+////                                    Thread.sleep(loadTime);
+//                                    if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[0]){
+//                                        while (!rightRoadStack.isEmpty() && rightRoadStack.peek() != agv){
+//                                            Thread.sleep(500);
+//                                        }
+//                                        rightRoadStack.pop();
+//                                    }else if (agv.getPath().get(agv.getPath().size()-1)==graph.arrayV[123]){
+//                                        while (!leftRoadStack.isEmpty() && leftRoadStack.peek() != agv){
+//                                            Thread.sleep(500);
+//                                        }
+//                                        leftRoadStack.pop();
+//                                    }
+//                                    //装载完成
+//                                    leftRoadStack.pop();
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "load" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"load",entry.getKey(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    agv.setState(Back);
+//                                }
+//                            } else {//正常行驶
+//                                for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                    double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                    Thread.sleep((long) sleepTime);
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((entry.getValue() / 0.8) * 1000));
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(entry.getKey());
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                }
+//                            }
+//                        } else if (agv.getState().equals(Back)) {//返程
+//                            if (np == graph.arrayV[downPrintArea]) {//转载区转载导弹
+//                                if (graph.arrayV[downPrintArea].getArea().getAgvInfoList().isEmpty()) {
+//                                    graph.arrayV[downPrintArea].getArea().getAgvInfoList().add(agv.getAgv());
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                    int sleepTime = 8 * 60 * 1000;
+////                                    Thread.sleep(sleepTime);
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+sleepTime);
+//                                    graph.arrayV[downPrintArea].getArea().getAgvInfoList().remove(agv.getAgv());
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + graph.arrayV[downPrintArea].getPathNum() + "-1" + " action:" + "transplant" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add(graph.arrayV[downPrintArea].getPathNum() + "-1");
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"transplant",graph.arrayV[downPrintArea].getPathNum(),beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                }
+//                            }else {
+//                                List<Map.Entry<String, Double>> list = new ArrayList<>(np.getPointList().entrySet());
+//                                Collections.reverse(list);
+//                                if (np.getPathNum().equals("23")){//回程变道
+//                                    Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                    double sleepTime = (9 / 0.8) * 1000;
+////                                    Thread.sleep((long) sleepTime);
+//                                    Timestamp time=new Timestamp(beginTime.getTime()+(long) ((9 / 0.8) * 1000));
+////                                    Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                    System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + "23-1" + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                    agv.newPath.add("23-1");
+//                                    TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn","23-1",beginTime,time);
+//                                    taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    continue;
+//                                }
+//                                if (np.getPathNum().equals("3") || np.getPathNum().equals("16")) {//遇到弯道转弯
+//                                    for (Map.Entry<String, Double> entry :list) {
+//                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+////                                        double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                        Thread.sleep((long) sleepTime);
+//                                        Timestamp time=new Timestamp(beginTime.getTime()+(long) (entry.getValue() / 0.8) * 1000);
+////                                        Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                        System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "turn" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                        agv.newPath.add(entry.getKey());
+//                                        TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"turn",entry.getKey(),beginTime,time);
+//                                        taskPlanResultService.SaveTaskPlanResult(temp);
+//                                    }
+//                                }else {
+//                                    for (Map.Entry<String, Double> entry : list) {
+//                                        Timestamp beginTime = new Timestamp(System.currentTimeMillis());
+//                                        if (entry.getKey().equals("19-18") && !graph.arrayV[downPrintArea].getArea().getAgvInfoList().isEmpty()) {
+//                                            while (!graph.arrayV[downPrintArea].getArea().getAgvInfoList().isEmpty()) {
+//                                                Thread.sleep(500);
+//                                            }
+//                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) (entry.getValue() / 0.8) * 1000);
+////                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "wait" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                            agv.newPath.add(entry.getKey());
+//                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"wait",entry.getKey(),beginTime,time);
+//                                            taskPlanResultService.SaveTaskPlanResult(temp);
+//                                        } else {
+////                                            double sleepTime = (entry.getValue() / 0.8) * 1000;
+////                                            Thread.sleep((long) sleepTime);
+//                                            Timestamp time=new Timestamp(beginTime.getTime()+(long) (entry.getValue() / 0.8) * 1000);
+////                                            Timestamp endTime = new Timestamp(System.currentTimeMillis());
+////                                            System.out.println("task:"+task.getTaskName()+"agvName:" + agv.getAgv().getAgvName() + " point:" + entry.getKey() + " action:" + "Straight" + " begintime:" + beginTime+ " endTime:" + endTime);
+////                                            agv.newPath.add(entry.getKey());
+//                                            TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),"Straight",entry.getKey(),beginTime,time);
+//                                            taskPlanResultService.SaveTaskPlanResult(temp);
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }, 3 * i, TimeUnit.SECONDS);
+//        }
+//        executorService1.shutdown();
+//        isThreadPool1Shutdown=true;
+//        executorService2.shutdown();
+//        isThreadPool2Shutdown=true;
+//        System.out.println("jieshula !");
+//    }
 
 }

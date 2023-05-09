@@ -38,6 +38,20 @@ public class ZktDevice {
     private String deviceVersion;
 
     /**
+     * agv的位置
+     */
+    @Column(name = "location")
+    private String location;
+
+    /**
+     * agv类型，单和双
+     */
+    @Column(name = "type")
+    private String type;
+
+
+
+    /**
      * 状态：1-空闲，2-任务中，3-故障，4-维修，5-充电中
      */
     private String status;
@@ -184,6 +198,22 @@ public class ZktDevice {
      */
     public void setDeviceVersion(String deviceVersion) {
         this.deviceVersion = deviceVersion;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     /**

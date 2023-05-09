@@ -1,8 +1,8 @@
 edu\szu\OutShelfService.class
 edu\szu\Impl\AgvServiceImpl.class
 edu\szu\Impl\TaskPlanResultServiceImpl.class
-edu\szu\ZktTaskSercive.class
 edu\szu\Impl\ZktWarehouseShelfServiceImpl.class
+edu\szu\ZktTaskSercive.class
 edu\szu\TaskResultService.class
 edu\szu\OutTaskService.class
 edu\szu\Impl\TaskServiceImpl.class
@@ -10,6 +10,6 @@ edu\szu\Impl\ShelfServiceImpl.class
 edu\szu\OutAgvService.class
 edu\szu\Impl\ZktDeviceServiceImpl.class
 edu\szu\Impl\ZktTaskServiceImpl.class
-edu\szu\ZktDeviceSercive.class
 edu\szu\TaskPlanResultService.class
+edu\szu\ZktDeviceSercive.class
 edu\szu\ZktWarehouseShelfSercive.class

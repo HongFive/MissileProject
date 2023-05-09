@@ -5,9 +5,11 @@ edu\szu\controller\HelloController.class
 edu\szu\utils\AgvTransferUtils.class
 edu\szu\controller\GraphOfMatrix.class
 edu\szu\controller\AgvThreadPool.class
+edu\szu\controller\AgvPathPlan.class
 edu\szu\controller\PlanRecommendController222.class
 edu\szu\utils\ShelfTransferUtils.class
 edu\szu\WarStartApplication.class
 edu\szu\controller\MyGraph.class
 edu\szu\Swagger2.class
+edu\szu\controller\AgvPathPlan$ThreadNode.class
 edu\szu\controller\AgvThreadPool$ThreadNode.class
