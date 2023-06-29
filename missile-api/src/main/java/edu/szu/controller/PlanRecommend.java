@@ -380,6 +380,9 @@ public class PlanRecommend {
                                 if(taskNum==0) break;
                                 taskNum -= 1;
                             }
+                            else{
+                                System.out.println("上装载区第一个任务没有找到点位");
+                            }
                         }
 
                         //如果找到的是上转载区的第一个任务，设置行数限制
@@ -806,14 +809,14 @@ public class PlanRecommend {
             for (ShelfInfo shelf : shelfs) {
                 //若超出limit 进行剪枝
                 //上装载区情况
-                if(isup && Integer.parseInt(shelf.getShelfName().split("-")[1]) >limit) return null;
+                if(isup && Integer.parseInt(shelf.getLocation().split("-")[1]) >limit) return null;
                 //下装载区情况
-                if(!isup && (maxDown - Integer.parseInt(shelf.getShelfName().split("-")[1])) > limit) return null;
+                if(!isup && (maxDown - Integer.parseInt(shelf.getLocation().split("-")[1])) > limit) return null;
 
                 //若行号超过限制
-                if(isup && Integer.parseInt(shelf.getShelfName().split("-")[1]) < upTaskLimit) return null;
+                if(isup && Integer.parseInt(shelf.getLocation().split("-")[1]) < upTaskLimit) return null;
 
-                if(!isup && Integer.parseInt(shelf.getShelfName().split("-")[1]) > downTaskLimit) return null;
+                if(!isup && Integer.parseInt(shelf.getLocation().split("-")[1]) > downTaskLimit) return null;
 
                 //底层货架
                 if(type.equals("单")){

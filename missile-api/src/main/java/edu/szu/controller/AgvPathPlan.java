@@ -216,7 +216,7 @@ public class AgvPathPlan {
                     if (np.getPathNum().equals("3")){//发生平移位置
                         Timestamp endtime = new Timestamp(begintime.getTime()+(long) ((8.2 / 0.8)*1000));
                         TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                "translate","3-5",begintime,endtime);
+                                "shift","3-5",begintime,endtime);
                         resForOne.add(temp);
                         begintime=endtime;
                         continue;
@@ -243,7 +243,7 @@ public class AgvPathPlan {
                         for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
                             Timestamp endtime=new Timestamp(begintime.getTime()+(long) ((8.2 / 0.8)*1000));
                             TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                    "translate",entry.getKey(),begintime,endtime);
+                                    "shift",entry.getKey(),begintime,endtime);
                             resForOne.add(temp);
                             begintime=endtime;
                         }
@@ -294,7 +294,7 @@ public class AgvPathPlan {
                                 if ((entry.getKey().split("-")[1]).equals(agv.getAgv().getLocation().split("-")[1])) {
                                     Timestamp endtime = new Timestamp(begintime.getTime()+(long) ((entry.getValue() / 0.8)*1000));
                                     TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                            "translate",entry.getKey(),begintime,endtime);
+                                            "shift",entry.getKey(),begintime,endtime);
                                     resForOne.add(temp);
                                     begintime=endtime;
                                     break;
@@ -316,7 +316,7 @@ public class AgvPathPlan {
                     if (np.getPathNum().equals("16")){//发生平移位置
                         Timestamp endtime = new Timestamp(begintime.getTime()+(long) ((9/ 0.8)*1000));
                         TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                "translate","16-1",begintime,endtime);
+                                "shift","16-1",begintime,endtime);
                         resForOne.add(temp);
                         begintime=endtime;
                         continue;
@@ -343,7 +343,7 @@ public class AgvPathPlan {
                         for (Map.Entry<String, Double> entry : np.getPointList().entrySet()) {
                             Timestamp endtime=new Timestamp(begintime.getTime()+(long) ((9 / 0.8)*1000));
                             TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                    "translate",entry.getKey(),begintime,endtime);
+                                    "shift",entry.getKey(),begintime,endtime);
                             resForOne.add(temp);
                             begintime=endtime;
                         }
@@ -385,7 +385,7 @@ public class AgvPathPlan {
                         for (Map.Entry<String, Double> entry : list) {
                             Timestamp endtime=new Timestamp(begintime.getTime()+(long) ((8.2 / 0.6)*1000));
                             TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                    "translate",entry.getKey(),begintime,endtime);
+                                    "shift",entry.getKey(),begintime,endtime);
                             resForOne.add(temp);
                             begintime=endtime;
                         }
@@ -394,7 +394,7 @@ public class AgvPathPlan {
                     if (np.getPathNum().equals("8")){
                         Timestamp endtime = new Timestamp(begintime.getTime()+(long) ((8.2 / 0.6)*1000));
                         TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                "translate","8-5",begintime,endtime);
+                                "shift","8-5",begintime,endtime);
                         resForOne.add(temp);
                         begintime=endtime;
                     }
@@ -467,7 +467,7 @@ public class AgvPathPlan {
                         for (Map.Entry<String, Double> entry : list) {
                             Timestamp endtime=new Timestamp(begintime.getTime()+(long) ((9 / 0.6)*1000));
                             TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                    "translate",entry.getKey(),begintime,endtime);
+                                    "shift",entry.getKey(),begintime,endtime);
                             resForOne.add(temp);
                             begintime=endtime;
                         }
@@ -476,7 +476,7 @@ public class AgvPathPlan {
                     if (np.getPathNum().equals("23")){
                         Timestamp endtime = new Timestamp(begintime.getTime()+(long) ((9/ 0.6)*1000));
                         TaskPlanResultPointInfo temp=new TaskPlanResultPointInfo(task.getId(),agv.getAgv().getId(),task.getTaskName(),agv.getAgv().getAgvName(),agv.getShelf().getId(),
-                                "translate","23-1",begintime,endtime);
+                                "shift","23-1",begintime,endtime);
                         resForOne.add(temp);
                         begintime=endtime;
                     }

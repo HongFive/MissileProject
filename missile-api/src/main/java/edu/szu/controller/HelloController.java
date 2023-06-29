@@ -260,7 +260,6 @@ public class HelloController {
     @GetMapping("/task/{id}")
     public JSONResult agvPath(@PathVariable String id) throws JSONException {
 
-
         List<ShelfInfo> shelfInfoList = new ArrayList<>();
         List<ZktWarehouseShelf> zktWarehouseShelfs = zktWarehouseShelfSercive.queryZktWarehouseShelfList();
         for (ZktWarehouseShelf zktWarehouseShelf : zktWarehouseShelfs) {
@@ -277,6 +276,11 @@ public class HelloController {
             agvInfoList.add(agv);
         }
         ZktTask zktTask = zktTaskSercive.queryTask(id);
+        if(zktTask == null){
+            return JSONResult.errorMsg("任务ID不存在！");
+        }
+        String task_type = zktTask.getType();
+
         PlanRecommend recommend=new PlanRecommend();
         LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> result= recommend.resourceRecommend(zktTask,shelfInfoList,agvInfoList);
 
@@ -297,18 +301,15 @@ public class HelloController {
             for (AgvInfo link_agvInfo : lhw.keySet()) {
                 TaskResultBody taskResultBody = new TaskResultBody();
                 taskResultBody.setAgvRecommend_id(link_agvInfo.getId());
-
-//                taskResultBody.setShelfRecommend_id(res.getShelf().getId());
-//                taskResultBody.setShelfName(ShelfTransferUtils.convert(res.getShelf()));
                 taskResultBody.setAgvName(link_agvInfo.getAgvName());
                 for (ShelfInfo shelf : graph.arrayV[lhw.get(link_agvInfo).getId()].getShelfs()) {
                     if (link_agvInfo.getType().equals("单") && shelf.getLayer() == 1 && shelf.getState() == true) {
-                        taskResultBody.setShelfName(shelf.getShelfName());
+                        taskResultBody.setShelfName(ShelfTransferUtils.convert(shelf));
                         taskResultBody.setShelfRecommend_id(shelf.getId());
                         shelf.setState(false);
                         break;
                     } else if (link_agvInfo.getType().equals("双") && (shelf.getLayer() == 2 || shelf.getLayer() == 3) && shelf.getState() == true) {
-                        taskResultBody.setShelfName(shelf.getShelfName());
+                        taskResultBody.setShelfName(ShelfTransferUtils.convert(shelf));
                         taskResultBody.setShelfRecommend_id(shelf.getId());
                         shelf.setState(false);
                         break;
@@ -318,91 +319,6 @@ public class HelloController {
             }
 
         }
-
-
-
-
-//        ZktTask zktTask = zktTaskSercive.queryTask(id);
-//        PlanRecommend recommend=new PlanRecommend();
-//        LinkedHashMap<String,LinkedHashMap<AgvInfo,NodePoint>> result= recommend.resourceRecommend(zktTask,shelfInfoList,agvInfoList);
-
-        //第一阶段agv与路径结果
-//        LinkedHashMap<AgvInfo, List<NodePoint>> paths = graph.findShortPathsRecommend(result);
-//        List<ResultBody> resultList=new ArrayList<>();
-//        for (Map.Entry<AgvInfo, List<NodePoint>> entry:paths.entrySet()){
-//            ResultBody tempTar=new ResultBody(entry.getKey(),entry.getValue());;
-//            for (Map.Entry<String,LinkedHashMap<AgvInfo,NodePoint>> entry1:result.entrySet()){
-//                for (Map.Entry<AgvInfo,NodePoint> entry2:entry1.getValue().entrySet()){
-//                    if (entry2.getKey()==entry.getKey()){
-//                        tempTar.setNode(entry2.getValue());
-//                        break;
-//                    }
-//                }
-//            }
-//            resultList.add(tempTar);
-//        }
-//
-//        //第二阶段agv与路径结果
-//        int k=0;
-//        for (Map.Entry<String,LinkedHashMap<AgvInfo,NodePoint>> entry:result.entrySet()){
-//            if (k>=4){
-//                LinkedHashMap<AgvInfo,NodePoint> tempMap=result.get(entry.getKey());
-//                for (Map.Entry<AgvInfo,NodePoint> nextStage:tempMap.entrySet()){
-//                    Map.Entry<AgvInfo,List<NodePoint>> res=graph.searchForOne(nextStage);
-//                    ResultBody newRes=new ResultBody(res.getKey(),nextStage.getValue(),res.getValue());
-//                    resultList.add(newRes);
-//                }
-//            }
-//            k++;
-//        }
-//
-//
-////        List<TaskRecommendResultInfo> taskRecommendResultInfoList=new ArrayList<>();
-//        shelfInfoList = new ArrayList<>();
-//        for (ZktWarehouseShelf zktWarehouseShelf : zktWarehouseShelfs) {
-//            ShelfInfo shelf = ShelfTransferUtils.convert(zktWarehouseShelf);
-////            shelf.setId(tmp_id++);
-//            shelfInfoList.add(shelf);
-//        }
-//        graph = new MyGraph(124, true);
-//        graph = graph.initialGraph(agvInfoList, shelfInfoList);
-//
-//        List<TaskResultBody> taskRecommendResultList=new ArrayList<>();
-//
-//
-//
-//        for (ResultBody res:resultList){
-//            for (ShelfInfo shelf:graph.arrayV[res.getNode().getId()].getShelfs()){
-//                if (res.getAgvInfo().getType().equals("单")&&shelf.getLayer()==1&&shelf.getState()==true){
-//                    res.setShelf(shelf);
-//                    shelf.setState(false);
-//                    break;
-//                }
-//                else if (res.getAgvInfo().getType().equals("双")&&(shelf.getLayer()==2||shelf.getLayer()==3)&&shelf.getState()==true){
-//                    res.setShelf(shelf);
-//                    shelf.setState(false);
-//                    break;
-//                }
-//            }
-//            NodePoint dest=res.getPath().get(res.getPath().size()-1);
-//            List<String> path=new ArrayList<>();
-//            for (NodePoint node:res.getPath()){
-//                if (path.size()>0&&path.get(path.size()-1).equals(node.getPathNum())) continue;
-//                path.add(node.getPathNum());
-//            }
-////            TaskRecommendResultInfo tRRI=new TaskRecommendResultInfo(j++,zktTask.getTaskName(),String.valueOf(res.getShelf().getId()),String.valueOf(res.getShelf().getId()),res.getAgvInfo().getAgvName(),res.getAgvInfo().getAgvName(),
-////                    dest.getPathNum(),dest.getPathNum(),res.getAgvInfo().getAgvName(),res.getAgvInfo().getAgvName(),res.getAgvInfo().getLocation(),path.toString(),new Date());
-////            taskRecommendResultInfoList.add(tRRI);
-//
-//            System.out.println(res.getNode().getId());
-//
-//            TaskResultBody taskResultBody = new TaskResultBody();
-//            taskResultBody.setAgvRecommend_id(res.getAgvInfo().getId());
-//            taskResultBody.setShelfRecommend_id(res.getShelf().getId());
-//            taskResultBody.setShelfName(ShelfTransferUtils.convert(res.getShelf()));
-//            taskResultBody.setAgvName(res.getAgvInfo().getAgvName());
-//            taskRecommendResultList.add(taskResultBody);
-//        }
 
         return JSONResult.ok(taskRecommendResultList);
     }
@@ -430,6 +346,10 @@ public class HelloController {
         MyGraph graph = new MyGraph(124, true);
         graph = graph.initialGraph(agvInfoList, shelfInfoList);
         ZktTask taskInfo = zktTaskSercive.queryTask(id);
+        if(taskInfo == null){
+            return JSONResult.errorMsg("任务ID不存在！");
+        }
+        String task_type = taskInfo.getType();
         PlanRecommend recommend = new PlanRecommend();
         LinkedHashMap<String, LinkedHashMap<AgvInfo, NodePoint>> result = recommend.resourceRecommend(taskInfo, shelfInfoList, agvInfoList);
 
@@ -449,7 +369,6 @@ public class HelloController {
             }
             resultList.add(tempTar);
         }
-
 
         //第二阶段agv与路径结果
         int k = 0;
@@ -492,28 +411,29 @@ public class HelloController {
 
         if (result.size() > 0) {
             while (!resultList.isEmpty()) {
-                    Map.Entry<String, LinkedHashMap<AgvInfo, NodePoint>> entry = result.entrySet().iterator().next();
-                    int up=0;
-                    int down=0;
+                Map.Entry<String, LinkedHashMap<AgvInfo, NodePoint>> entry = result.entrySet().iterator().next();
+                int up=0;
+                int down=0;
+                if (entry.getKey().contains("up")){
+                    up=entry.getValue().size();
+                }else if (entry.getKey().contains("down")){
+                    down=entry.getValue().size();
+                }
+                result.remove(entry.getKey());
+                if (result.size()>0){
+                    entry = result.entrySet().iterator().next();
                     if (entry.getKey().contains("up")){
                         up=entry.getValue().size();
                     }else if (entry.getKey().contains("down")){
                         down=entry.getValue().size();
                     }
                     result.remove(entry.getKey());
-                    if (result.size()>0){
-                        entry = result.entrySet().iterator().next();
-                        if (entry.getKey().contains("up")){
-                            up=entry.getValue().size();
-                        }else if (entry.getKey().contains("down")){
-                            down=entry.getValue().size();
-                        }
-                        result.remove(entry.getKey());
-                    }
-                    TPRPlist.addAll(agvPathPlan.AgvPathDetail(taskInfo, graph, resultList, up, down));
+                }
+                TPRPlist.addAll(agvPathPlan.AgvPathDetail(taskInfo, graph, resultList, up, down));
             }
         }
 
+        taskPlanResultService.SavePathResultList(TPRPlist);
         return JSONResult.ok(TPRPlist);
 
     }
